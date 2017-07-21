@@ -1,0 +1,25 @@
+
+CREATE TABLE USER (
+  id        INT PRIMARY KEY,
+  username  VARCHAR(64) NOT NULL,
+  password  VARCHAR(64),
+  enabled   SMALLINT NOT NULL DEFAULT 1,
+  reg_dtm   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+alter table USER add constraint AK_USER unique( username );
+
+CREATE TABLE PERMISSION (
+  perm_cd   VARCHAR(100) PRIMARY KEY,
+  descr     VARCHAR(200) NOT NULL,
+  enabled   SMALLINT NOT NULL DEFAULT 1,
+  reg_dtm   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE USER_PERM_REL (
+  user_id    INT NOT NULL,
+  perm_cd    VARCHAR(100) NOT NULL,
+  reg_dtm    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE USER_PERM_REL ADD PRIMARY KEY (user_id, perm_cd);

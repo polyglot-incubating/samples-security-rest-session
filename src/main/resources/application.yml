@@ -1,0 +1,72 @@
+server:
+  port: ${port:8080}
+spring:
+  profiles:
+    active:  default
+  session:
+    store-type: redis
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:SAMPLES;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;
+    name: SAMPLES
+    username: sa
+    password:
+    validationQuery: SELECT 1
+    platform: h2
+    initialize: true
+    schema: classpath:data/schema-h2.sql
+    data: classpath:data/data-h2.sql
+  jackson:
+    serialization:
+      indent-output: true
+      
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: SAMPLES
+  redis:
+    database: 0
+    password: aider1234
+    host: localhost
+    port: 6379
+    timeout: 0
+    pool:
+      max-active: 8
+      max-idle: 8
+      max-wait: -1
+      min-idle: 0
+
+# H2 Web Console
+  h2:
+    console:
+      path: /h2-console
+      enabled: true
+      settings:
+        web-allow-others: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+logging:
+  pattern:
+    console: "%d %-5level %logger : %msg%n"
+  level:
+    root: info
+    org.springframework: info
+    org.springframework.security: debug
+    org.chiwooplatform: debug
+
+---
+spring:
+  profiles: dev
+
+logging:
+  config: classpath:logback-dev.xml
+
+server:
+  port: ${port:8082}}
