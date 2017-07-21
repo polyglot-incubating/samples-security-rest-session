@@ -10,12 +10,11 @@ import org.chiwooplatform.samples.model.AuthToken;
  * Created by seonbo.shim on 2017-07-06.
  * http://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#repository-query-keywords
  */
-public interface AuthenticationRepository
-    extends MongoRepository<AuthToken, String> {
+public interface AuthenticationRepository extends MongoRepository<AuthToken, String> {
 
-    AuthToken findByUsername( String username );
+  AuthToken findByUsername(String username);
 
-    AuthToken findByToken( String token );
+  AuthToken findByToken(String token);
 
-    List<AuthToken> findByUsernameLike( String username );
+  List<AuthToken> findByUsernameLike(String username);
 }

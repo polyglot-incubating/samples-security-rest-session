@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
-@Target({ java.lang.annotation.ElementType.TYPE })
+@Target({java.lang.annotation.ElementType.TYPE})
 @Documented
 @Configuration
 @EnableRedisHttpSession

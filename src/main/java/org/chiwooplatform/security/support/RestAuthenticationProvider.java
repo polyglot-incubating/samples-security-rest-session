@@ -24,75 +24,73 @@ import org.slf4j.LoggerFactory;
  * 
  * <pre>
  * &#64;Bean
- * public AuthenticationProvider authenticationProvider()
- * {
- *     final RestAuthenticationProvider authenticationProvider = new RestAuthenticationProvider( userPrincipalResolver() );
- *     return authenticationProvider;
+ * public AuthenticationProvider authenticationProvider() {
+ *   final RestAuthenticationProvider authenticationProvider =
+ *       new RestAuthenticationProvider(userPrincipalResolver());
+ *   return authenticationProvider;
  * }
  * </pre>
  */
-public class RestAuthenticationProvider
-    implements AuthenticationProvider {
+public class RestAuthenticationProvider implements AuthenticationProvider {
 
-    private final transient Logger logger = LoggerFactory.getLogger( RestAuthenticationProvider.class );
+  private final transient Logger logger = LoggerFactory.getLogger(RestAuthenticationProvider.class);
 
-    private static final int EXPIRES_DAYS = 30;
+  private static final int EXPIRES_DAYS = 30;
 
-    private final UserPrincipalResolver userPrincipalResolver;
+  private final UserPrincipalResolver userPrincipalResolver;
 
-    protected final MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
+  protected final MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
 
-    private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
+  private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
-    public RestAuthenticationProvider( UserPrincipalResolver userPrincipalResolver ) {
-        super();
-        this.userPrincipalResolver = userPrincipalResolver;
+  public RestAuthenticationProvider(UserPrincipalResolver userPrincipalResolver) {
+    super();
+    this.userPrincipalResolver = userPrincipalResolver;
+  }
+
+  public void setUserDetailsChecker(UserDetailsChecker userDetailsChecker) {
+    this.userDetailsChecker = userDetailsChecker;
+  }
+
+  /**
+   * @see AuthenticationProvider#authenticate(Authentication)
+   */
+  @Override
+  public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    final String username = authentication.getName();
+    try {
+      UserPrincipal userPrincipal = userPrincipalResolver.getUser(username);
+      userDetailsChecker.check(userPrincipal);
+      String credentials = authentication.getCredentials().toString();
+      if (!credentials.equals(userPrincipal.getPassword())) {
+        throw new BadCredentialsException(messages.getMessage(
+            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+      }
+      if (userPrincipal instanceof CredentialsContainer) {
+        ((CredentialsContainer) userPrincipal).eraseCredentials();
+      }
+      final String token = UUIDGenerator.uuid();
+      RestAuthenticationToken newAuthentication =
+          new RestAuthenticationToken(userPrincipal, "", token);
+      final String expires = DateUtils.getFormattedString(DateUtils.plusDays(EXPIRES_DAYS),
+          DateUtils.DEFAULT_TIMESTAMP_FORMAT);
+      newAuthentication.setExpires(expires);
+      return newAuthentication;
+    } catch (AuthenticationException ae) {
+      logger.error("AE: {}", ae.getMessage());
+      throw ae;
+    } catch (RuntimeException re) {
+      logger.error("RE: {}", re.getMessage());
+      throw new UsernameNotFoundException(this.messages.getMessage("JdbcDaoImpl.notFound",
+          new Object[] {username}, "Username {0} not found"));
     }
+  }
 
-    public void setUserDetailsChecker( UserDetailsChecker userDetailsChecker ) {
-        this.userDetailsChecker = userDetailsChecker;
-    }
-
-    /**
-     * @see AuthenticationProvider#authenticate(Authentication)
-     */
-    @Override
-    public Authentication authenticate( Authentication authentication )
-        throws AuthenticationException {
-        final String username = authentication.getName();
-        try {
-            UserPrincipal userPrincipal = userPrincipalResolver.getUser( username );
-            userDetailsChecker.check( userPrincipal );
-            String credentials = authentication.getCredentials().toString();
-            if ( !credentials.equals( userPrincipal.getPassword() ) ) {
-                throw new BadCredentialsException( messages.getMessage( "AbstractUserDetailsAuthenticationProvider.badCredentials",
-                                                                        "Bad credentials" ) );
-            }
-            if ( userPrincipal instanceof CredentialsContainer ) {
-                ( (CredentialsContainer) userPrincipal ).eraseCredentials();
-            }
-            final String token = UUIDGenerator.uuid();
-            RestAuthenticationToken newAuthentication = new RestAuthenticationToken( userPrincipal, "", token );
-            final String expires = DateUtils.getFormattedString( DateUtils.plusDays( EXPIRES_DAYS ),
-                                                                 DateUtils.DEFAULT_TIMESTAMP_FORMAT );
-            newAuthentication.setExpires( expires );
-            return newAuthentication;
-        } catch ( AuthenticationException ae ) {
-            logger.error( "AE: {}", ae.getMessage() );
-            throw ae;
-        } catch ( RuntimeException re ) {
-            logger.error( "RE: {}", re.getMessage() );
-            throw new UsernameNotFoundException( this.messages.getMessage( "JdbcDaoImpl.notFound",
-                                                                           new Object[] { username },
-                                                                           "Username {0} not found" ) );
-        }
-    }
-
-    /**
-     * @see AuthenticationProvider#supports(Class)
-     */
-    @Override
-    public boolean supports( Class<?> authentication ) {
-        return ( RestAuthenticationToken.class.isAssignableFrom( authentication ) );
-    }
+  /**
+   * @see AuthenticationProvider#supports(Class)
+   */
+  @Override
+  public boolean supports(Class<?> authentication) {
+    return (RestAuthenticationToken.class.isAssignableFrom(authentication));
+  }
 }

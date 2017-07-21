@@ -6,5 +6,5 @@ import org.springframework.security.core.GrantedAuthority;
 
 public interface UserAuthorityResolver {
 
-    Collection<? extends GrantedAuthority> getAuthorities( Object args );
+  Collection<? extends GrantedAuthority> getAuthorities(Object args);
 }

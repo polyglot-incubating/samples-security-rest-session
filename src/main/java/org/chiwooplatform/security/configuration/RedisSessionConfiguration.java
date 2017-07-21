@@ -15,20 +15,20 @@ import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
 @Configuration
 public class RedisSessionConfiguration {
 
-    public static final String SESSION_REGISTRY_NAME = "redisBackedSessionRegistry";
+  public static final String SESSION_REGISTRY_NAME = "redisBackedSessionRegistry";
 
-    @Autowired
-    @Qualifier("sessionRedisTemplate")
-    private RedisTemplate<Object, Object> redisTemplate;
+  @Autowired
+  @Qualifier("sessionRedisTemplate")
+  private RedisTemplate<Object, Object> redisTemplate;
 
-    @SuppressWarnings("rawtypes")
-    @Autowired
-    private FindByIndexNameSessionRepository sessionRepository;
+  @SuppressWarnings("rawtypes")
+  @Autowired
+  private FindByIndexNameSessionRepository sessionRepository;
 
-    @Bean(name = RedisSessionConfiguration.SESSION_REGISTRY_NAME)
-    public RedisBackedSessionRegistry redisBackedSessionRegistry() {
-        final RedisBackedSessionRegistry redisBackedSessionRegistry = new RedisBackedSessionRegistry( sessionRepository,
-                                                                                                      redisTemplate );
-        return redisBackedSessionRegistry;
-    }
+  @Bean(name = RedisSessionConfiguration.SESSION_REGISTRY_NAME)
+  public RedisBackedSessionRegistry redisBackedSessionRegistry() {
+    final RedisBackedSessionRegistry redisBackedSessionRegistry =
+        new RedisBackedSessionRegistry(sessionRepository, redisTemplate);
+    return redisBackedSessionRegistry;
+  }
 }

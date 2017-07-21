@@ -16,26 +16,27 @@ import lombok.ToString;
 @Data
 @ToString
 @JsonRootName("authToken")
-public class AuthToken
-    implements Serializable {
+public class AuthToken implements Serializable {
 
-    private Integer id;
+  private Integer id;
 
-    private String username;
+  private String username;
 
-    private String token; /* token. It can be modified with new token */
+  private String token; /* token. It can be modified with new token */
 
-    private String expires; /* UTC Timestamp "2014-01-31T15:30:58Z", It can be modified with new token */
+  private String expires; /*
+                           * UTC Timestamp "2014-01-31T15:30:58Z", It can be modified with new token
+                           */
 
-    private UserPrincipal user;
+  private UserPrincipal user;
 
-    public void authentication( final Authentication authentication ) {
-        if ( authentication instanceof RestAuthenticationToken ) {
-            RestAuthenticationToken auth = (RestAuthenticationToken) authentication;
-            this.token = auth.getToken();
-            this.id = ( (UserPrincipal) auth.getDetails() ).getId();
-            this.username = authentication.getName();
-            this.expires = auth.getExpires();
-        }
+  public void authentication(final Authentication authentication) {
+    if (authentication instanceof RestAuthenticationToken) {
+      RestAuthenticationToken auth = (RestAuthenticationToken) authentication;
+      this.token = auth.getToken();
+      this.id = ((UserPrincipal) auth.getDetails()).getId();
+      this.username = authentication.getName();
+      this.expires = auth.getExpires();
     }
+  }
 }
