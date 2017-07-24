@@ -3,11 +3,11 @@
 -- noinspection SqlDialectInspectionForFile
 
 INSERT INTO USER (id, username, password) VALUES
-  (801001, 'usr1@daum.net', 'qwer!234'),
-  (801002, 'usr2@naver.com', 'qwer!234'),
-  (801003, 'usr.fabok@facebook.com', 'qwer!234'),
   (100001, 'lamp.java@gmail.com', 'qwer!234'),
-  (100002, 'abc@abc', 'qwer!234');
+  (100002, 'usr1@daum.net', 'qwer!234'),
+  (100003, 'usr2@naver.com', 'qwer!234'),
+  (100004, 'usr.fabok@facebook.com', 'qwer!234'),  
+  (101001, 'abc@abc', 'qwer!234');
 
 INSERT INTO PERMISSION (perm_cd, descr, enabled) VALUES
   ('API_ComCode.add', '공통', 1),

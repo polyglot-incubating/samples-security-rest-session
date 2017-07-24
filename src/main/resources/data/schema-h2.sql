@@ -1,10 +1,19 @@
-
+  
 CREATE TABLE USER (
-  id        INT PRIMARY KEY,
-  username  VARCHAR(64) NOT NULL,
-  password  VARCHAR(64),
-  enabled   SMALLINT NOT NULL DEFAULT 1,
-  reg_dtm   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id            INT PRIMARY KEY AUTO_INCREMENT,
+  username      VARCHAR(64) NOT NULL,
+  password      VARCHAR(64),  
+  firstname     VARCHAR(100),
+  lastname      VARCHAR(100),
+  email         VARCHAR(100),
+  country_code  VARCHAR(10),
+  zip_code      VARCHAR(10),
+  address       VARCHAR(200),
+  cellphone     VARCHAR(20),
+  birthdate     VARCHAR(8),
+  gender        VARCHAR(1),
+  enabled       SMALLINT NOT NULL DEFAULT 1,
+  reg_dtm       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 alter table USER add constraint AK_USER unique( username );
