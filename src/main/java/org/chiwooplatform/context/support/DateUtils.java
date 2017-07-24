@@ -53,6 +53,11 @@ public class DateUtils {
     return LocalDateTime.now();
   }
 
+
+  public static LocalDateTime toLocalTime(final long timestamp) {
+    return DateUtils.toLocalTime(new Date(timestamp));
+  }
+
   public static LocalDateTime toLocalTime(final Date date) {
     return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
   }
@@ -65,6 +70,10 @@ public class DateUtils {
   public static LocalDateTime minusMinutes(int minutes) {
     final LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
     return now.minusMinutes(minutes);
+  }
+
+  public static Long timeMillis(final LocalDateTime localDtm) {
+    return DateUtils.toDate(localDtm).getTime();
   }
 
   public static LocalDateTime plusDays(int days) {
@@ -118,17 +127,22 @@ public class DateUtils {
     return Duration.between(start.toLocalTime(), end.toLocalTime());
   }
 
-  public long durationMinutes(Date start, Date end) {
+  public static long durationMinutes(Date start, Date end) {
     final Duration duration = DateUtils.duration(start, end);
     return duration.getSeconds() / 60;
   }
 
-  public boolean isExpired(final Date date) {
+  public static boolean isExpired(final Long timestamp) {
+    final LocalDateTime baseTime = DateUtils.toLocalTime(timestamp);
+    return baseTime.isBefore(DateUtils.nowTime());
+  }
+
+  public static boolean isExpired(final Date date) {
     final LocalDateTime baseTime = DateUtils.toLocalTime(date);
     return baseTime.isBefore(DateUtils.nowTime());
   }
 
-  public boolean isExpired(final LocalDateTime baseTime) {
+  public static boolean isExpired(final LocalDateTime baseTime) {
     return baseTime.isBefore(DateUtils.nowTime());
   }
 

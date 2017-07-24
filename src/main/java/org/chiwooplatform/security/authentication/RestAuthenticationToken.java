@@ -19,7 +19,7 @@ public class RestAuthenticationToken extends AbstractAuthenticationToken {
 
   private final String token;
 
-  private String expires;
+  private Long expires;
 
   public RestAuthenticationToken(Object principal, Object credentials) {
     super(null);
@@ -85,11 +85,11 @@ public class RestAuthenticationToken extends AbstractAuthenticationToken {
     return token;
   }
 
-  public String getExpires() {
+  public Long getExpires() {
     return expires;
   }
 
-  public void setExpires(String expires) {
+  public void setExpires(Long expires) {
     this.expires = expires;
   }
 

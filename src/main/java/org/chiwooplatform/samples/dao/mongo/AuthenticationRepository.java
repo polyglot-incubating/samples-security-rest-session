@@ -4,17 +4,17 @@ import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import org.chiwooplatform.samples.model.AuthToken;
+import org.chiwooplatform.samples.model.AuthenticationUser;
 
 /**
  * Created by seonbo.shim on 2017-07-06.
  * http://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#repository-query-keywords
  */
-public interface AuthenticationRepository extends MongoRepository<AuthToken, String> {
+public interface AuthenticationRepository extends MongoRepository<AuthenticationUser, Integer> {
 
-  AuthToken findByUsername(String username);
+  AuthenticationUser findByUsername(String username);
 
-  AuthToken findByToken(String token);
+  AuthenticationUser findByToken(String token);
 
-  List<AuthToken> findByUsernameLike(String username);
+  List<AuthenticationUser> findByUsernameLike(String username);
 }

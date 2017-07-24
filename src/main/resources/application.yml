@@ -11,7 +11,6 @@ spring:
     name: SAMPLES
     username: sa
     password:
-    validationQuery: SELECT 1
     platform: h2
     initialize: true
     schema: classpath:data/schema-h2.sql

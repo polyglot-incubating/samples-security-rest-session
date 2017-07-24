@@ -2,6 +2,7 @@ package org.chiwooplatform.samples;
 
 import java.util.Date;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -12,8 +13,11 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalField;
 
+import org.chiwooplatform.context.support.DateUtils;
 import org.junit.Test;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +33,11 @@ public class SimpleTest {
   static final int SECONDS_PER_MINUTE = 60;
 
   static final int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+
+  @Test
+  public void testCurrentTimeMillis() throws Exception {
+    log.info("dtm: {}", System.currentTimeMillis());
+  }
 
   static Duration duration(LocalDateTime start, LocalDateTime end) {
     Duration duration = Duration.between(start.toLocalTime(), end.toLocalTime());
@@ -177,5 +186,21 @@ public class SimpleTest {
     final LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
     log.debug("{}", now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
     log.debug("{}", now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
+  }
+
+  @Test
+  public void ut1010_plusMins() {
+    final LocalDateTime now = DateUtils.nowTime();
+    log.info("         dtm: {}", Timestamp.valueOf(now).getTime()  );
+    log.info("         dtm: {}", DateUtils.toDate(now).getTime() );
+
+
+
+    log.info("         now: {}", DateUtils.getFormattedString(now));
+    final LocalDateTime plus3Min = DateUtils.plusMins(3);
+    log.info("after 3 mins: {}", DateUtils.getFormattedString(plus3Min));
+
+    log.info("   isExpired: {}", DateUtils.isExpired(now));
+    log.info("   isExpired: {}", DateUtils.isExpired(DateUtils.timeMillis(now)));
   }
 }

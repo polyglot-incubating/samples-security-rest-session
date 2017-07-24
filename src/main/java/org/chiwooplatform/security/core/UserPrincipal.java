@@ -1,6 +1,6 @@
 package org.chiwooplatform.security.core;
 
-import java.util.Set;
+import java.util.Collection;
 
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,7 +16,7 @@ public class UserPrincipal implements UserDetails, CredentialsContainer {
 
   private String password;
 
-  private Set<GrantedAuthority> authorities;
+  private Collection<GrantedAuthority> authorities;
 
   private boolean accountNonExpired;
 
@@ -56,11 +56,11 @@ public class UserPrincipal implements UserDetails, CredentialsContainer {
   }
 
   @Override
-  public Set<GrantedAuthority> getAuthorities() {
+  public Collection<GrantedAuthority> getAuthorities() {
     return authorities;
   }
 
-  public void setAuthorities(Set<GrantedAuthority> authorities) {
+  public void setAuthorities(Collection<GrantedAuthority> authorities) {
     this.authorities = authorities;
   }
 

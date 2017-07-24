@@ -72,8 +72,12 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
       final String token = UUIDGenerator.uuid();
       RestAuthenticationToken newAuthentication =
           new RestAuthenticationToken(userPrincipal, "", token);
-      final String expires = DateUtils.getFormattedString(DateUtils.plusDays(EXPIRES_DAYS),
-          DateUtils.DEFAULT_TIMESTAMP_FORMAT);
+      final Long expires = DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
+      /*
+       * final String expiresStringFormat =
+       * DateUtils.getFormattedString(DateUtils.plusDays(EXPIRES_DAYS),
+       * DateUtils.DEFAULT_TIMESTAMP_FORMAT);
+       */
       newAuthentication.setExpires(expires);
       return newAuthentication;
     } catch (AuthenticationException ae) {
