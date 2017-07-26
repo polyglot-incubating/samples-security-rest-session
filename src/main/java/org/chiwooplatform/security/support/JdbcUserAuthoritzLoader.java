@@ -15,10 +15,15 @@ import org.slf4j.LoggerFactory;
 
 public class JdbcUserAuthoritzLoader implements UserAuthoritzLoader, InitializingBean {
 
-
   private final Logger logger = LoggerFactory.getLogger(JdbcUserAuthoritzLoader.class);
 
-  private JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
+
+  @Autowired
+  public JdbcUserAuthoritzLoader(JdbcTemplate jdbcTemplate) {
+    super();
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
   private static final String SQL = selectSql();
 
@@ -31,15 +36,6 @@ public class JdbcUserAuthoritzLoader implements UserAuthoritzLoader, Initializin
     builder.append('\n').append("and     enabled = 1 ");
     builder.append('\n').append("and     u.id = p.user_id ");
     return builder.toString();
-  }
-
-  public JdbcUserAuthoritzLoader() {
-    super();
-  }
-
-  @Autowired
-  public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = jdbcTemplate;
   }
 
   @Override

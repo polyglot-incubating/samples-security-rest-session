@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -53,16 +54,13 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
   private final Logger logger = LoggerFactory.getLogger(RestAuthenticationFilter.class);
 
-  private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   private boolean postOnly = true;
 
 
 
   private void postProcess() {
-    if (this.objectMapper == null) {
-      this.objectMapper = new ObjectMapper();
-    }
     setAuthenticationFailureHandler(new RestAuthenticationFailureHandler());
     setAuthenticationSuccessHandler(new RestAuthenticationSuccessHandler(this.objectMapper));
   }
@@ -73,8 +71,10 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
   public RestAuthenticationFilter(String loginProcessUri) {
     super(new AntPathRequestMatcher(loginProcessUri, "POST"));
+    this.objectMapper = new ObjectMapper();
   }
 
+  @Autowired
   public RestAuthenticationFilter(String loginProcessUri, ObjectMapper objectMapper) {
     super(new AntPathRequestMatcher(loginProcessUri, "POST"));
     this.objectMapper = objectMapper;
@@ -115,12 +115,6 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
     // 인증을 성공 했다면 response 의 location 헤더에 restapi 를 알려주면 좋겠지...
     // final URI location = WebUtils.uriLocation("/{id}", newAuthentication.getName());
     return this.getAuthenticationManager().authenticate(authRequest);
-  }
-
-
-  public void setObjectMapper(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-
   }
 
   @Override

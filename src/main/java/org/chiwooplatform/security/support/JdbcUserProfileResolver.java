@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
@@ -22,22 +21,17 @@ public class JdbcUserProfileResolver implements UserProfileResolver, Initializin
   private static final String SQL =
       "SELECT u.id, u.username, u.password, u.enabled FROM USER u WHERE u.username = ?";
 
-  private JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
   private UserAuthoritzLoader userAuthoritzLoader;
 
-  public JdbcUserProfileResolver() {
-    super();
-  }
-
   @Autowired
-  public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+  public JdbcUserProfileResolver(JdbcTemplate jdbcTemplate) {
+    super();
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  @Autowired
-  public void setUserAuthoritzLoader(
-      @Qualifier(UserAuthoritzLoader.COMPONENT_NAME) UserAuthoritzLoader userAuthoritzLoader) {
+  public void setUserAuthoritzLoader(UserAuthoritzLoader userAuthoritzLoader) {
     this.userAuthoritzLoader = userAuthoritzLoader;
   }
 
@@ -63,7 +57,9 @@ public class JdbcUserProfileResolver implements UserProfileResolver, Initializin
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    logger.warn("Can not load authorities of user because not found UserAuthoritzLoader.");
+    if (this.userAuthoritzLoader == null) {
+      logger.warn("Can not load authorities of user because not found UserAuthoritzLoader.");
+    }
     Assert.notNull(jdbcTemplate, "JdbcTemplate must be specified");
   }
 }

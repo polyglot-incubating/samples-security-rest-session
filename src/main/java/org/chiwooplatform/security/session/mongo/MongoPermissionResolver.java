@@ -7,8 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class MongoPermissionResolver implements PermissionResolver {
 
-  private final transient Logger logger =
-      LoggerFactory.getLogger(MongoPermissionResolver.class);
+  private final transient Logger logger = LoggerFactory.getLogger(MongoPermissionResolver.class);
 
   public MongoPermissionResolver() {
     super();

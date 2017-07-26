@@ -2,7 +2,9 @@ package org.chiwooplatform.samples.core;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -18,7 +20,10 @@ import org.springframework.session.web.http.HeaderHttpSessionStrategy;
 import org.chiwooplatform.context.support.UUIDGenerator;
 import org.chiwooplatform.samples.support.DefaultCorsConfiguration;
 import org.chiwooplatform.security.configuration.EnableRedisSessionRegistry;
+import org.chiwooplatform.security.core.AuthenticationRepository;
+import org.chiwooplatform.security.core.UserAuthoritzLoader;
 import org.chiwooplatform.security.core.UserProfileResolver;
+import org.chiwooplatform.security.session.mongo.MongoAuthenticationRepository;
 import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
 import org.chiwooplatform.security.support.AnonymousStatelessAuthenticationFilter;
 import org.chiwooplatform.security.support.JdbcUserAuthoritzLoader;
@@ -91,41 +96,58 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and().servletApi()
         // .and().formLogin()
         .and().logout()
-        .and().authenticationProvider(authenticationProvider())
+        .and().authenticationProvider(authenticationProvider)
         .addFilter(new WebAsyncManagerIntegrationFilter())
-        .addFilterBefore( restAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class );
+        .addFilterBefore( restAuthenticationFilter, UsernamePasswordAuthenticationFilter.class );
     // @formatter:on
   }
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
   @Bean
-  public RestAuthenticationFilter restAuthenticationFilter() throws Exception {
-    final RestAuthenticationFilter restAuthenticationFilter =
-        new RestAuthenticationFilter("/identity/auth/tokens", objectMapper);
-    restAuthenticationFilter.setAuthenticationManager(authenticationManager());
-    return restAuthenticationFilter;
+  public RestAuthenticationFilter restAuthenticationFilter(ObjectMapper objectMapper)
+      throws Exception {
+    final String loginUri = "/identity/auth/tokens";
+    final RestAuthenticationFilter filter = new RestAuthenticationFilter(loginUri, objectMapper);
+    filter.setAuthenticationManager(authenticationManager());
+    return filter;
   }
 
-  @Bean(name = JdbcUserAuthoritzLoader.COMPONENT_NAME)
-  public JdbcUserAuthoritzLoader jdbcUserAuthoritzLoader() {
-    final JdbcUserAuthoritzLoader jdbcUserAuthoritzLoader = new JdbcUserAuthoritzLoader();
+  @Autowired
+  private RestAuthenticationFilter restAuthenticationFilter;
+
+  private UserAuthoritzLoader userAuthoritzLoader(JdbcTemplate jdbcTemplate) {
+    final JdbcUserAuthoritzLoader jdbcUserAuthoritzLoader =
+        new JdbcUserAuthoritzLoader(jdbcTemplate);
     return jdbcUserAuthoritzLoader;
   }
 
-  @Bean
-  public UserProfileResolver userProfileResolver() {
-    final JdbcUserProfileResolver userPrincipalResolver = new JdbcUserProfileResolver();
+  private MongoAuthenticationRepository authenticationRepository(MongoTemplate mongoTemplate) {
+    final MongoAuthenticationRepository repository =
+        new MongoAuthenticationRepository(mongoTemplate);
+    return repository;
+  }
+
+  private UserProfileResolver userProfileResolver(JdbcTemplate jdbcTemplate) {
+    final JdbcUserProfileResolver userPrincipalResolver = new JdbcUserProfileResolver(jdbcTemplate);
+    userPrincipalResolver.setUserAuthoritzLoader(userAuthoritzLoader(jdbcTemplate));
     return userPrincipalResolver;
   }
 
   @Bean
-  public AuthenticationProvider authenticationProvider() {
-    final RestAuthenticationProvider authenticationProvider =
-        new RestAuthenticationProvider(userProfileResolver());
-    return authenticationProvider;
+  public AuthenticationProvider authenticationProvider(JdbcTemplate jdbcTemplate,
+      MongoTemplate mongoTemplate) {
+    final UserProfileResolver userProfileResolver = userProfileResolver(jdbcTemplate);
+    final AuthenticationRepository authenticationRepository =
+        authenticationRepository(mongoTemplate);
+    // System.out.println("UserProfileResolver      ----- " + userProfileResolver);
+    // System.out.println("AuthenticationRepository ----- " + authenticationRepository);
+    final RestAuthenticationProvider provider = new RestAuthenticationProvider(userProfileResolver);
+    provider.setAuthenticationRepository(authenticationRepository);
+    return provider;
   }
+
+  @Autowired
+  private AuthenticationProvider authenticationProvider;
+
 
   @Bean
   public HeaderHttpSessionStrategy headerHttpSessionStrategy() {

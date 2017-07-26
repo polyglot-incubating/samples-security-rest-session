@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import org.chiwooplatform.context.support.DateUtils;
 import org.chiwooplatform.security.authentication.RestAuthenticationToken;
+import org.chiwooplatform.security.core.AuthenticationRepository;
 import org.chiwooplatform.security.core.UserProfile;
 import org.chiwooplatform.security.core.UserProfileResolver;
 import org.slf4j.Logger;
@@ -42,6 +43,12 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
+  private AuthenticationRepository authenticationRepository;
+
+  public void setAuthenticationRepository(AuthenticationRepository authenticationRepository) {
+    this.authenticationRepository = authenticationRepository;
+  }
+
   public RestAuthenticationProvider(UserProfileResolver userPrincipalResolver) {
     super();
     this.userProfileResolver = userPrincipalResolver;
@@ -59,6 +66,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
     final String username = authentication.getName();
     try {
       RestAuthenticationToken authenticationToken = (RestAuthenticationToken) authentication;
+      logger.debug("username: {}", username);
       UserProfile user = userProfileResolver.getUser(username);
       userDetailsChecker.check(user);
       String credentials = authentication.getCredentials().toString();
@@ -74,12 +82,18 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
       final RestAuthenticationToken newAuthentication = new RestAuthenticationToken(user);
       final Long expires = DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
       newAuthentication.setExpires(expires);
+
+      if (authenticationRepository != null) {
+        authenticationRepository.save(newAuthentication);
+      }
+
+      // AuthenticationUser
       return newAuthentication;
     } catch (AuthenticationException ae) {
       logger.error("AE: {}", ae.getMessage());
       throw ae;
     } catch (RuntimeException re) {
-      logger.error("RE: {}", re.getMessage());
+      logger.error("RE: {}", re.getMessage(), re);
       throw new UsernameNotFoundException(this.messages.getMessage("JdbcDaoImpl.notFound",
           new Object[] {username}, "Username {0} not found"));
     }

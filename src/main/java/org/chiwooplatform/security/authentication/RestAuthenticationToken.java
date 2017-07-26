@@ -47,6 +47,7 @@ public class RestAuthenticationToken extends AbstractAuthenticationToken {
     this.principal = user.getUsername();
     this.credentials = user.getPassword();
     this.token = user.getToken();
+    this.setDetails(user);
     super.setAuthenticated(true);
   }
 
