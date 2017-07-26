@@ -9,8 +9,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import org.chiwooplatform.context.support.DateUtils;
 import org.chiwooplatform.context.support.UUIDGenerator;
-import org.chiwooplatform.samples.AbstractMongoTests;
 import org.chiwooplatform.samples.model.AuthenticationUser;
+import org.chiwooplatform.security.AbstractMongoTests;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,19 +41,21 @@ public class AuthenticationRepositoryTest {
 
     log.info("-------------------------------------------");
     String token = UUIDGenerator.uuid();
-    Long expires = DateUtils.timeMillis(DateUtils.plusMins(3));
+    Long expires = DateUtils.timeMillis(DateUtils.plusMins(1));
     AuthenticationUser at = new AuthenticationUser();
-    at.setId(1001);
+    at.setUserId(1001);
     at.setUsername("abc@abc");
     at.setToken(token);
     at.setExpires(expires);
     at.setAuthorities(AuthorityUtils.createAuthorityList("ROLE_ADM_1", "ROLE_ADM_2"));
     at.authentication(token, expires);
 
-    if (repository.exists(at.getId())) {
+    if (repository.exists(at.getUsername())) {
       log.info("exists");
-      AuthenticationUser oldAt = repository.findOne(at.getId());
+      AuthenticationUser oldAt = repository.findOne(at.getUsername());
       oldAt.authentication(token, expires);
+      log.info("oldAt.tokens: {}, oldAt.activeTokens(): {}", oldAt.getTokens().size(),
+          oldAt.activeTokens().size());
       at.setTokens(oldAt.activeTokens());
       repository.save(at);
     } else {

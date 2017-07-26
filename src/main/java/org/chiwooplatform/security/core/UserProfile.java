@@ -6,7 +6,7 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class UserPrincipal implements UserDetails, CredentialsContainer {
+public class UserProfile implements UserDetails, CredentialsContainer {
 
   private static final long serialVersionUID = 5709881808149844018L;
 
@@ -15,6 +15,8 @@ public class UserPrincipal implements UserDetails, CredentialsContainer {
   private final String username;
 
   private String password;
+
+  private String token;
 
   private Collection<GrantedAuthority> authorities;
 
@@ -26,11 +28,11 @@ public class UserPrincipal implements UserDetails, CredentialsContainer {
 
   private boolean enabled;
 
-  public UserPrincipal(String username, String password) {
+  public UserProfile(String username, String password) {
     this(null, username, password);
   }
 
-  public UserPrincipal(Integer id, String username, String password) {
+  public UserProfile(Integer id, String username, String password) {
     super();
     this.id = id;
     this.username = username;
@@ -46,13 +48,21 @@ public class UserPrincipal implements UserDetails, CredentialsContainer {
   }
 
   @Override
+  public String getUsername() {
+    return username;
+  }
+
+  @Override
   public String getPassword() {
     return this.password;
   }
 
-  @Override
-  public String getUsername() {
-    return username;
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
   }
 
   @Override

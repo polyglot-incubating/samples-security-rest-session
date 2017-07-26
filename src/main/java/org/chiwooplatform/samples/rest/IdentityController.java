@@ -23,9 +23,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,9 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.chiwooplatform.samples.dao.mongo.AuthenticationRepository;
 import org.chiwooplatform.samples.model.AuthenticationUser;
-import org.chiwooplatform.samples.model.SimpleCredentials;
 import org.chiwooplatform.samples.support.ConverterUtils;
 import org.chiwooplatform.security.authentication.RestAuthenticationToken;
+import org.chiwooplatform.security.authentication.SimpleCredentials;
 import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
 import org.chiwooplatform.web.support.WebUtils;
 
@@ -84,7 +84,7 @@ public class IdentityController {
    * @param creds
    * @return
    */
-  @PostMapping(value = BASE_URI + "/auth/tokens", consumes = MediaType.APPLICATION_JSON_VALUE)
+  // @PostMapping(value = BASE_URI + "/auth/tokens", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<AuthenticationUser> authenticate(@RequestBody SimpleCredentials creds) {
     log.debug("{}", creds);
     AuthenticationUser authToken = new AuthenticationUser();
@@ -94,13 +94,14 @@ public class IdentityController {
       log.debug("Found oldAuthentication: {}", oldAuthentication);
     }
     Authentication authentication =
-        new RestAuthenticationToken(creds.getUsername(), creds.getPassword());
+        new RestAuthenticationToken(creds.getUsername(), creds.getPassword(), "sessionId");
     try {
-      final Authentication newAuthentication = authenticationManager.authenticate(authentication);
+      final RestAuthenticationToken newAuthentication =
+          (RestAuthenticationToken) authenticationManager.authenticate(authentication);
       log.debug("newAuthentication: {}", newAuthentication);
       log.debug("principal: {}", newAuthentication.getPrincipal());
       SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-      authToken.authentication(newAuthentication);
+      authToken.authentication(newAuthentication.getToken(), newAuthentication.getExpires());
       // repository.save(arg0)
       final URI location = WebUtils.uriLocation("/{id}", newAuthentication.getName());
       return ResponseEntity.created(location).body(authToken);
@@ -121,24 +122,26 @@ public class IdentityController {
     return ResponseEntity.ok(principals);
   }
 
-  // @RequestMapping(value = "/identity/auth/query", method = RequestMethod.GET, consumes = {
-  // MediaType.APPLICATION_JSON_VALUE })
-  // @ResponseStatus(HttpStatus.OK)
-  // public @JsonSerialize List<AuthenticationUser> query( @RequestParam Map<String, Object> params,
-  // @PageableDefault(sort = { "expires" }) Pageable pageable,
-  // HttpSession session )
-  // throws Exception {
-  // final String sessionId = session.getId();
-  // log.debug( "sessionId: {}", sessionId );
-  // AuthenticationUser auth = ConverterUtils.toBeanInstance( params, AuthenticationUser.class );
-  // ExampleMatcher matcher = ExampleMatcher.matching().withMatcher( "id",
-  // GenericPropertyMatchers.exact() )
-  // .withMatcher( "username", GenericPropertyMatchers.startsWith() )
-  // .withMatcher( "token", GenericPropertyMatchers.contains() );
-  // Example<AuthenticationUser> example = Example.of( auth, matcher );
-  // Page<AuthenticationUser> page = repository.findAll( example, pageable );
-  // return page.getContent();
+  // protected String name(Object principal) {
+  // if (principal instanceof UserDetails) {
+  // return ((UserDetails) principal).getUsername();
   // }
+  // if (principal instanceof Principal) {
+  // return ((Principal) principal).getName();
+  // }
+  // return principal.toString();
+  // }
+  //
+
+  @GetMapping(value = BASE_URI + "/active-sessions", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Object> getActiveSessions() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    log.info("authentication: {}", authentication);
+    List<SessionInformation> sessions =
+        sessionRegistry.getAllSessions(authentication.getPrincipal(), false);
+    return ResponseEntity.ok(sessions);
+  }
+
   @RequestMapping(value = "/identity/auth/query", method = RequestMethod.GET,
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(HttpStatus.OK)
@@ -172,7 +175,8 @@ public class IdentityController {
               .withMatcher("token", GenericPropertyMatchers.contains());
       Example<AuthenticationUser> example = Example.of(auth, matcher);
       return repository.findAll(example).stream().limit(5)
-          .sorted(Comparator.comparing(AuthenticationUser::getUsername)).collect(Collectors.toList());
+          .sorted(Comparator.comparing(AuthenticationUser::getUsername))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       log.error(e.getMessage(), e);
       return null;

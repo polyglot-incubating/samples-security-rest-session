@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.data.redis.RedisOperationsSessionRepository;
 
+import org.chiwooplatform.security.session.redis.RedisPermissionResolver;
 import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
 
 @ConditionalOnBean(RedisOperationsSessionRepository.class)
@@ -31,4 +32,14 @@ public class RedisSessionConfiguration {
         new RedisBackedSessionRegistry(sessionRepository, redisTemplate);
     return redisBackedSessionRegistry;
   }
+
+  public static final String TOKEN_VALIDATOR_NAME = "redisAuthenticationTokenValidator";
+
+  @Bean(name = TOKEN_VALIDATOR_NAME)
+  public RedisPermissionResolver redisAuthenticationTokenValidator() {
+    final RedisPermissionResolver redisAuthenticationTokenValidator =
+        new RedisPermissionResolver(redisBackedSessionRegistry());
+    return redisAuthenticationTokenValidator;
+  }
+
 }

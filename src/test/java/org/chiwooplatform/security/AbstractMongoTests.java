@@ -1,4 +1,4 @@
-package org.chiwooplatform.samples;
+package org.chiwooplatform.security;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;

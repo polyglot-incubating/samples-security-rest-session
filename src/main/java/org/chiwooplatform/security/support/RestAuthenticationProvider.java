@@ -12,10 +12,9 @@ import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import org.chiwooplatform.context.support.DateUtils;
-import org.chiwooplatform.context.support.UUIDGenerator;
 import org.chiwooplatform.security.authentication.RestAuthenticationToken;
-import org.chiwooplatform.security.core.UserPrincipal;
-import org.chiwooplatform.security.core.UserPrincipalResolver;
+import org.chiwooplatform.security.core.UserProfile;
+import org.chiwooplatform.security.core.UserProfileResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +36,15 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
   private static final int EXPIRES_DAYS = 30;
 
-  private final UserPrincipalResolver userPrincipalResolver;
+  private final UserProfileResolver userProfileResolver;
 
   protected final MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
 
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
-  public RestAuthenticationProvider(UserPrincipalResolver userPrincipalResolver) {
+  public RestAuthenticationProvider(UserProfileResolver userPrincipalResolver) {
     super();
-    this.userPrincipalResolver = userPrincipalResolver;
+    this.userProfileResolver = userPrincipalResolver;
   }
 
   public void setUserDetailsChecker(UserDetailsChecker userDetailsChecker) {
@@ -59,25 +58,21 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     final String username = authentication.getName();
     try {
-      UserPrincipal userPrincipal = userPrincipalResolver.getUser(username);
-      userDetailsChecker.check(userPrincipal);
+      RestAuthenticationToken authenticationToken = (RestAuthenticationToken) authentication;
+      UserProfile user = userProfileResolver.getUser(username);
+      userDetailsChecker.check(user);
       String credentials = authentication.getCredentials().toString();
-      if (!credentials.equals(userPrincipal.getPassword())) {
+      if (!credentials.equals(user.getPassword())) {
         throw new BadCredentialsException(messages.getMessage(
             "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
       }
-      if (userPrincipal instanceof CredentialsContainer) {
-        ((CredentialsContainer) userPrincipal).eraseCredentials();
+      final String token = authenticationToken.getToken();
+      user.setToken(token);
+      if (user instanceof CredentialsContainer) {
+        ((CredentialsContainer) user).eraseCredentials();
       }
-      final String token = UUIDGenerator.uuid();
-      RestAuthenticationToken newAuthentication =
-          new RestAuthenticationToken(userPrincipal, "", token);
+      final RestAuthenticationToken newAuthentication = new RestAuthenticationToken(user);
       final Long expires = DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
-      /*
-       * final String expiresStringFormat =
-       * DateUtils.getFormattedString(DateUtils.plusDays(EXPIRES_DAYS),
-       * DateUtils.DEFAULT_TIMESTAMP_FORMAT);
-       */
       newAuthentication.setExpires(expires);
       return newAuthentication;
     } catch (AuthenticationException ae) {

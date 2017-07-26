@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 
 import java.net.URI;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
@@ -84,4 +86,23 @@ public final class WebUtils {
         .buildAndExpand(resourceIds).toUri();
     return uri;
   }
+
+  private static final String USER_AGENT_HEADER_NAME = "user-agent";
+  private static final String CONTENT_TYPE_HEADER_NAME = "content-type";
+  private static final String REQUEST_WITH_HEADER_NAME = "X-Requested-With";
+
+  public static boolean isAjaxRequest(HttpServletRequest request) {
+    final String requestWith = request.getHeader(REQUEST_WITH_HEADER_NAME);
+    final String contentType = request.getHeader(CONTENT_TYPE_HEADER_NAME);
+    if ("XMLHttpRequest".equals(requestWith) || contentType.startsWith("application/json")
+        || contentType.startsWith("application/xml")) {
+      return true;
+    }
+    return false;
+  }
+
+  public static String userAgent(HttpServletRequest request) {
+    return request.getHeader(USER_AGENT_HEADER_NAME);
+  }
+
 }

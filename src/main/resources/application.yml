@@ -1,5 +1,10 @@
+debug: true
+
 server:
   port: ${port:8080}
+  session:
+    timeout: 120
+ 
 spring:
   profiles:
     active:  default

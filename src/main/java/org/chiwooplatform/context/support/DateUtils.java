@@ -133,6 +133,9 @@ public class DateUtils {
   }
 
   public static boolean isExpired(final Long timestamp) {
+    if (timestamp == null) {
+      return false;
+    }
     final LocalDateTime baseTime = DateUtils.toLocalTime(timestamp);
     return baseTime.isBefore(DateUtils.nowTime());
   }
@@ -154,6 +157,10 @@ public class DateUtils {
    */
   public static String getFormattedString(String format) {
     return DateUtils.nowTime().format(DateUtils.formatter(format));
+  }
+
+  public static String getFormattedString(Long timestamp) {
+    return DateUtils.getFormattedString(DateUtils.toLocalTime(timestamp));
   }
 
   public static String getFormattedString(Date date) {

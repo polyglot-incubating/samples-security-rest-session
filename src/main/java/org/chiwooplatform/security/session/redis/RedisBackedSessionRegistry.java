@@ -27,6 +27,9 @@ import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ *
+ */
 @DependsOn("sessionRedisTemplate")
 @ConditionalOnBean(RedisOperationsSessionRepository.class)
 @Component
@@ -68,15 +71,24 @@ public class RedisBackedSessionRegistry extends SpringSessionBackedSessionRegist
     return RedisBackedSessionRegistry.DEFAULT_SPRING_SESSION_REDIS_PREFIX + sessionId;
   }
 
-  private final String lastElement(Set<Object> values) {
+
+  private String getSessionId(Set<Object> values) {
     if (values == null) {
       return null;
     }
-    Object value = null;
-    for (Object val : values) {
-      value = val;
+    for (Object sessionId : values) {
+      return (String) sessionId;
     }
-    return value.toString();
+    return null;
+  }
+
+  private Authentication getAuthentication(final String sessionId) {
+    Object value = opsHash.get(sessionKey(sessionId), SESSION_ATTR_CONTEXT);
+    if (value != null && value instanceof SecurityContext) {
+      Authentication authentication = ((SecurityContext) value).getAuthentication();
+      return authentication;
+    }
+    return null;
   }
 
   @Override
@@ -88,17 +100,16 @@ public class RedisBackedSessionRegistry extends SpringSessionBackedSessionRegist
     List<Object> principals = new LinkedList<>();
     for (final Object key : rawPrincipals) {
       Set<Object> values = opsSet.members(key);
-      final String sessionId = lastElement(values);
+      final String sessionId = getSessionId(values);
       if (logger.isDebugEnabled()) {
         logger.debug("key: {}, sessionId: {}", key, sessionId);
       }
       try {
-        Object value = opsHash.get(sessionKey(sessionId), SESSION_ATTR_CONTEXT);
-        if (value == null) {
+        Authentication authentication = getAuthentication(sessionId);
+        if (authentication == null) {
           redisTemplate.delete(key);
           logger.info("Deleted key '{}'", key);
-        } else if (value instanceof SecurityContext) {
-          Authentication authentication = ((SecurityContext) value).getAuthentication();
+        } else {
           if (logger.isDebugEnabled()) {
             logger.debug("authentication: {}", authentication);
           }
@@ -144,5 +155,26 @@ public class RedisBackedSessionRegistry extends SpringSessionBackedSessionRegist
     };
     final Set<Object> rawPrincipals = redisTemplate.execute(callback, true);
     return new ArrayList<>(rawPrincipals);
+  }
+
+  /*
+   * This is a no-op, as we don't administer sessions ourselves.
+   */
+  public void refreshLastRequest(String sessionId) {
+    logger.info("sessionId: {}", sessionId);
+  }
+
+  /*
+   * This is a no-op, as we don't administer sessions ourselves.
+   */
+  public void registerNewSession(String sessionId, Object principal) {
+    logger.info("sessionId: {}, principal: {}", sessionId, principal);
+  }
+
+  /*
+   * This is a no-op, as we don't administer sessions ourselves.
+   */
+  public void removeSessionInformation(String sessionId) {
+    logger.info("sessionId: {}", sessionId);
   }
 }

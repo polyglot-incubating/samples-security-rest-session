@@ -3,10 +3,9 @@ package org.chiwooplatform.security.authentication;
 import java.security.Principal;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import org.chiwooplatform.security.core.UserPrincipal;
+import org.chiwooplatform.security.core.UserProfile;
 
 @SuppressWarnings("serial")
 public class RestAuthenticationToken extends AbstractAuthenticationToken {
@@ -21,10 +20,10 @@ public class RestAuthenticationToken extends AbstractAuthenticationToken {
 
   private Long expires;
 
-  public RestAuthenticationToken(Object principal, Object credentials) {
+  public RestAuthenticationToken(Object principal) {
     super(null);
     this.principal = principal;
-    this.credentials = credentials;
+    this.credentials = null;
     this.token = null;
     super.setAuthenticated(false);
   }
@@ -35,30 +34,19 @@ public class RestAuthenticationToken extends AbstractAuthenticationToken {
    * @param credentials generally represent password.
    * @param token auth token
    */
-  public RestAuthenticationToken(UserPrincipal principal, Object credentials, String token) {
+  public RestAuthenticationToken(Object principal, Object credentials, String token) {
     super(null);
-    this.principal = principal.getUsername();
-    this.credentials = credentials;
-    this.token = token;
-    this.setDetails(principal);
-    super.setAuthenticated(true);
-  }
-
-  /**
-   * @param principal This is can be used to represent any entity, such as an individual, a
-   *        corporation, and a login id.
-   * @param credentials generally represent password.
-   * @param token auth token
-   * @param authorities Collection of granted authorities.
-   */
-  public RestAuthenticationToken(Object principal, Object credentials, String token,
-      String... authorities) {
-    super(AuthorityUtils.createAuthorityList(authorities));
-    // Arrays.asList( authorities ).stream().map( ( role ) -> new SimpleGrantedAuthority( role )
-    // ).collect( Collectors.toList() )
     this.principal = principal;
     this.credentials = credentials;
     this.token = token;
+    super.setAuthenticated(false);
+  }
+
+  public RestAuthenticationToken(UserProfile user) {
+    super(user.getAuthorities());
+    this.principal = user.getUsername();
+    this.credentials = user.getPassword();
+    this.token = user.getToken();
     super.setAuthenticated(true);
   }
 

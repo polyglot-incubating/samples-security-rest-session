@@ -120,3 +120,36 @@ redis 127.0.0.1:6379> hget "spring:session:sessions:53b834b6-bbcf-4a94-9701-46c1
 ~~~
 
 
+### Spring Security
+spring-security 는 filter-chainning 전략으로 모든 요청에 대해 보안 처리를 한다.
+그 중에서 특히 AbstractAuthenticationProcessingFilter 는 사용자 인증을 담당 하고 있다.
+가장 핵심이 되는 코드를 참고 하자.
+~~~
+
+public abstract Authentication attemptAuthentication(HttpServletRequest request,
+        HttpServletResponse response) throws AuthenticationException, IOException,
+        ServletException {
+    ...
+    Authentication authResult;
+    try {
+        authResult = attemptAuthentication(request, response);
+        if (authResult == null) {
+            // return immediately as subclass has indicated that it hasn't completed authentication
+            return;
+        }
+        sessionStrategy.onAuthentication(authResult, request, response);
+    }
+    catch (InternalAuthenticationServiceException failed) {
+        logger.error( "An internal error occurred while trying to authenticate the user.", failed);
+        unsuccessfulAuthentication(request, response, failed);
+        return;
+    }
+    catch (AuthenticationException failed) {
+        // Authentication failed
+        unsuccessfulAuthentication(request, response, failed);
+        return;
+    }
+    ...
+}
+
+~~~
