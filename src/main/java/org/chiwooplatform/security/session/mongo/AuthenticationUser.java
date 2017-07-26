@@ -5,76 +5,95 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.util.StringUtils;
-
 import org.chiwooplatform.context.support.DateUtils;
 import org.chiwooplatform.security.authentication.SimpleToken;
+import org.springframework.util.StringUtils;
 
-public class AuthenticationUser {
+public class AuthenticationUser
+{
+    private String username;
 
-  private String username;
+    private Integer userId;
 
-  private Integer userId;
-
-  public AuthenticationUser() {
-    super();
-  }
-
-  public AuthenticationUser(Collection<SimpleToken> tokens) {
-    super();
-    this.tokens = tokens;
-  }
-
-  private Collection<SimpleToken> tokens =
-      new HashSet<>(); /* token. It can be modified with new token */
-
-  private Collection<String> authorities;
-
-  public void authentication(final String token, final Long expires) {
-    if (StringUtils.isEmpty(token) || DateUtils.isExpired(expires)) {
-      return;
+    public AuthenticationUser()
+    {
+        super();
     }
-    final SimpleToken simpleToken = new SimpleToken(token, expires);
-    tokens.add(simpleToken);
-  }
 
-  public Collection<SimpleToken> activeTokens() {
-    if (this.tokens.size() > 0) {
-      final List<SimpleToken> tokens = this.tokens.stream()
-          .filter((v) -> !DateUtils.isExpired((Long) v.getExpires())).collect(Collectors.toList());
-      return tokens;
+    public AuthenticationUser( AuthenticationUser oldUser )
+    {
+        super();
+        this.username = oldUser.getUsername();
+        this.userId = oldUser.getUserId();
+        this.authorities = oldUser.getAuthorities();
+        this.tokens = oldUser.activeTokens();
     }
-    return this.tokens;
-  }
 
+    private Collection<SimpleToken> tokens = new HashSet<>(); /* token. It can be modified with new token */
 
-  public String getUsername() {
-    return username;
-  }
+    private Collection<String> authorities;
 
-  public void setUsername(String username) {
-    this.username = username;
-  }
+    public void authentication( final String token, final Long expires )
+    {
+        if ( StringUtils.isEmpty( token ) || DateUtils.isExpired( expires ) )
+        {
+            return;
+        }
+        final SimpleToken simpleToken = new SimpleToken( token, expires );
+        tokens.add( simpleToken );
+    }
 
-  public Integer getUserId() {
-    return userId;
-  }
+    public Collection<SimpleToken> activeTokens()
+    {
+        if ( this.tokens.size() > 0 )
+        {
+            final List<SimpleToken> tokens = this.tokens.stream()
+                                                        // .filter( ( v ) -> !DateUtils.isExpired( (Long) v.getExpires() ) )
+                                                        .collect( Collectors.toList() );
+            return tokens;
+        }
+        return this.tokens;
+    }
 
-  public void setUserId(Integer userId) {
-    this.userId = userId;
-  }
+    @Override
+    public String toString()
+    {
+        return "AuthenticationUser [username=" + username + ", userId=" + userId + ", tokens=" + tokens
+            + ", authorities=" + authorities + "]";
+    }
 
-  public Collection<SimpleToken> getTokens() {
-    return tokens;
-  }
+    public String getUsername()
+    {
+        return username;
+    }
 
+    public void setUsername( String username )
+    {
+        this.username = username;
+    }
 
-  public Collection<String> getAuthorities() {
-    return authorities;
-  }
+    public Integer getUserId()
+    {
+        return userId;
+    }
 
-  public void setAuthorities(Collection<String> authorities) {
-    this.authorities = authorities;
-  }
+    public void setUserId( Integer userId )
+    {
+        this.userId = userId;
+    }
 
+    public Collection<SimpleToken> getTokens()
+    {
+        return tokens;
+    }
+
+    public Collection<String> getAuthorities()
+    {
+        return authorities;
+    }
+
+    public void setAuthorities( Collection<String> authorities )
+    {
+        this.authorities = authorities;
+    }
 }

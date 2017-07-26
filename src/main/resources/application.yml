@@ -67,8 +67,23 @@ logging:
 
 ---
 spring:
-  profiles: dev
+  profiles: home
+  data:
+    mongodb:
+      host: 192.168.30.210
+      port: 27017
+      database: SAMPLES
+  redis:
+    database: 0
+    password: aider1234
+    host: 192.168.30.210
+    port: 6379
+    timeout: 0
 
+---
+spring:
+  profiles: dev
+  
 logging:
   config: classpath:logback-dev.xml
 

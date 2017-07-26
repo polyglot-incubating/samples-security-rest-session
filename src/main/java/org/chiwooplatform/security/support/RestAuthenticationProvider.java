@@ -11,11 +11,15 @@ import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 import org.chiwooplatform.context.support.DateUtils;
 import org.chiwooplatform.security.authentication.RestAuthenticationToken;
 import org.chiwooplatform.security.core.AuthenticationRepository;
 import org.chiwooplatform.security.core.UserProfile;
 import org.chiwooplatform.security.core.UserProfileResolver;
+import org.chiwooplatform.security.session.mongo.AuthenticationUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,12 +86,19 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
       final RestAuthenticationToken newAuthentication = new RestAuthenticationToken(user);
       final Long expires = DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
       newAuthentication.setExpires(expires);
-
       if (authenticationRepository != null) {
-        authenticationRepository.save(newAuthentication);
+          AuthenticationUser authenticationUser = new AuthenticationUser();
+          authenticationUser.setUserId( user.getId() );
+          authenticationUser.setUsername( username );
+          authenticationUser.authentication( token, expires );
+          Collection<String> authorities = null;
+          if ( user.getAuthorities() != null ) {
+              authorities = user.getAuthorities().stream().map( ( v ) -> v.getAuthority() )
+                                .collect( Collectors.toList() );
+          }
+          authenticationUser.setAuthorities( authorities );
+          authenticationRepository.save(authenticationUser);
       }
-
-      // AuthenticationUser
       return newAuthentication;
     } catch (AuthenticationException ae) {
       logger.error("AE: {}", ae.getMessage());
