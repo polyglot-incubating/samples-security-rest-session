@@ -84,7 +84,7 @@ public class MongoAuthenticationRepository implements AuthenticationRepository<A
 
   public <D> D findProjection(Query query, Class<D> clazz) {
     List<D> result = mongoTemplate.find(query, clazz, collectionName);
-    if (result == null) {
+    if (result == null || result.isEmpty()) {
       return null;
     }
     return result.get(0);

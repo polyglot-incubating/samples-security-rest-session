@@ -182,7 +182,7 @@ public void testName() throws Exception {
     UserProfile user = user();
     final Long currentTimestamp = System.currentTimeMillis();
     Query query =
-        new Query(Criteria.where("_id").is(user.getUsername()).and("tokens.expires").lt(currentTimestamp));
+        new Query(Criteria.where("_id").is(user.getUsername()).and("tokens.expires").gt(currentTimestamp));
     log.info("query: {}", query);
     ProjectionToken result = authenticationRepository.findProjection(query, ProjectionToken.class);
     log.info("result: {}", result);
