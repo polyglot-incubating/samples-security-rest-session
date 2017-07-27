@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.chiwooplatform.security.authentication.SimpleToken;
 
+@Deprecated
 public class ProjectionToken {
 
   private String id;
