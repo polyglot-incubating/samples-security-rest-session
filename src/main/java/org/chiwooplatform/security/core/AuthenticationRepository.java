@@ -1,22 +1,42 @@
 package org.chiwooplatform.security.core;
 
 import java.util.Collection;
+import java.util.Map;
 
-import org.chiwooplatform.security.session.mongo.AuthenticationUser;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.security.core.Authentication;
 
-public interface AuthenticationRepository
-{
-    String COMPONENT_NAME = "authenticationRepository";
+/**
+ * @param <T> domain model class
+ */
+public interface AuthenticationRepository<T> {
 
-    void add( Authentication authentication );
+  String COMPONENT_NAME = "authenticationRepository";
 
-    void save( AuthenticationUser user );
+  void add(T model);
 
-    boolean exists( String principal );
+  void save(T model);
 
-    AuthenticationUser findOne( String principal );
+  boolean exists(String id);
 
-    Collection<AuthenticationUser> findAll( Query query );
+  boolean remove(String id);
+
+  T findOne(String principal);
+
+  Collection<T> findAll(Map<String, Object> param);
+
+  public <D> Collection<D> findDocuments(Query query, Class<D> clazz);
+
+  public <D> D findProjection(Query query, Class<D> clazz);
+
+  void cleanExpiresToken(T model);
+
+  // @FunctionalInterface
+  // interface QueryId<T, R extends Query> {
+  // R queryID(T id);
+  // }
+  //
+  // {
+  // return new Query(Criteria.where("id").is(id));
+
+
 }

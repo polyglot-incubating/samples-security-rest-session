@@ -1,6 +1,8 @@
 package org.chiwooplatform.security.core;
 
+import java.util.Map;
+
 public interface PermissionResolver {
 
-  boolean hasPermission(Object args);
+  boolean hasPermission(Map<String, Object> args);
 }

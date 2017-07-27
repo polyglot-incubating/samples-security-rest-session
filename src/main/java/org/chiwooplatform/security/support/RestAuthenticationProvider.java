@@ -15,11 +15,11 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import org.chiwooplatform.context.support.DateUtils;
+import org.chiwooplatform.security.authentication.AuthenticationUser;
 import org.chiwooplatform.security.authentication.RestAuthenticationToken;
 import org.chiwooplatform.security.core.AuthenticationRepository;
 import org.chiwooplatform.security.core.UserProfile;
 import org.chiwooplatform.security.core.UserProfileResolver;
-import org.chiwooplatform.security.session.mongo.AuthenticationUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +47,9 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
-  private AuthenticationRepository authenticationRepository;
+  private AuthenticationRepository<AuthenticationUser> authenticationRepository;
 
-  public void setAuthenticationRepository(AuthenticationRepository authenticationRepository) {
+  public void setAuthenticationRepository(AuthenticationRepository<AuthenticationUser> authenticationRepository) {
     this.authenticationRepository = authenticationRepository;
   }
 
@@ -60,6 +60,36 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
   public void setUserDetailsChecker(UserDetailsChecker userDetailsChecker) {
     this.userDetailsChecker = userDetailsChecker;
+  }
+
+
+
+  private Collection<String> authorities(UserProfile user) {
+    Collection<String> authorities = null;
+    if (user.getAuthorities() != null) {
+      authorities =
+          user.getAuthorities().stream().map((v) -> v.getAuthority()).collect(Collectors.toList());
+    }
+    return authorities;
+  }
+
+
+  private AuthenticationUser authenticationUser(RestAuthenticationToken authentication) {
+    if (authentication == null) {
+      return null;
+    }
+    AuthenticationUser model = new AuthenticationUser();
+    model.setId(authentication.getPrincipal().toString());
+    model.authentication(authentication.getToken(), authentication.getExpires());
+    UserProfile user;
+    if (authentication.getDetails() != null) {
+      user = (UserProfile) authentication.getDetails();
+      if (user != null) {
+        model.setAuthorities(authorities(user));
+        model.setUserId(user.getId());
+      }
+    }
+    return model;
   }
 
   /**
@@ -87,17 +117,9 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
       final Long expires = DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
       newAuthentication.setExpires(expires);
       if (authenticationRepository != null) {
-          AuthenticationUser authenticationUser = new AuthenticationUser();
-          authenticationUser.setUserId( user.getId() );
-          authenticationUser.setUsername( username );
-          authenticationUser.authentication( token, expires );
-          Collection<String> authorities = null;
-          if ( user.getAuthorities() != null ) {
-              authorities = user.getAuthorities().stream().map( ( v ) -> v.getAuthority() )
-                                .collect( Collectors.toList() );
-          }
-          authenticationUser.setAuthorities( authorities );
-          authenticationRepository.save(authenticationUser);
+        AuthenticationUser authenticationUser = authenticationUser(newAuthentication);
+        authenticationRepository.cleanExpiresToken(authenticationUser);
+        authenticationRepository.save(authenticationUser);
       }
       return newAuthentication;
     } catch (AuthenticationException ae) {

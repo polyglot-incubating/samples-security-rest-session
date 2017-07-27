@@ -1,31 +1,46 @@
 package org.chiwooplatform.security.authentication;
 
-public class SimpleToken
-{
-    private final String token;
+public class SimpleToken {
+  private String token;
 
-    private final Object expires;
+  private Object expires;
 
-    public SimpleToken( String token, Object expires )
-    {
-        super();
-        this.token = token;
-        this.expires = expires;
-    }
+  public SimpleToken() {
+    super();
+  }
 
-    @Override
-    public String toString()
-    {
-        return "SimpleToken [token=" + token + ", expires=" + expires + "]";
-    }
+  public SimpleToken(String token, Object expires) {
+    super();
+    this.token = token;
+    this.expires = expires;
+  }
 
-    public String getId()
-    {
-        return token;
-    }
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SimpleToken [token=");
+    builder.append(token);
+    builder.append(", expires=");
+    builder.append(expires);
+    builder.append("]");
+    return builder.toString();
+  }
 
-    public Object getExpires()
-    {
-        return expires;
-    }
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
+  }
+
+  public Object getExpires() {
+    return expires;
+  }
+
+  public void setExpires(Object expires) {
+    this.expires = expires;
+  }
+
+
 }

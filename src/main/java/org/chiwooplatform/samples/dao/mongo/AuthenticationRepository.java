@@ -9,7 +9,7 @@ import org.chiwooplatform.samples.model.AuthenticationUser;
 
 /**
  * Created by seonbo.shim on 2017-07-06.
- * http://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#repository-query-keywords
+ * http://docs.spring.io/spring-tokens/mongodb/docs/current/reference/html/#repository-query-keywords
  */
 @Document(collection = "authentications")
 public interface AuthenticationRepository extends MongoRepository<AuthenticationUser, String> {

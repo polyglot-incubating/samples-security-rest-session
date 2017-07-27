@@ -19,6 +19,7 @@ import org.springframework.session.web.http.HeaderHttpSessionStrategy;
 
 import org.chiwooplatform.context.support.UUIDGenerator;
 import org.chiwooplatform.samples.support.DefaultCorsConfiguration;
+import org.chiwooplatform.security.authentication.AuthenticationUser;
 import org.chiwooplatform.security.configuration.EnableRedisSessionRegistry;
 import org.chiwooplatform.security.core.AuthenticationRepository;
 import org.chiwooplatform.security.core.UserAuthoritzLoader;
@@ -136,9 +137,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   public AuthenticationProvider authenticationProvider(JdbcTemplate jdbcTemplate,
       MongoTemplate mongoTemplate) {
     final UserProfileResolver userProfileResolver = userProfileResolver(jdbcTemplate);
-    final AuthenticationRepository authenticationRepository =
+    final AuthenticationRepository<AuthenticationUser> authenticationRepository =
         authenticationRepository(mongoTemplate);
-    // System.out.println("UserProfileResolver      ----- " + userProfileResolver);
+    // System.out.println("UserProfileResolver ----- " + userProfileResolver);
     // System.out.println("AuthenticationRepository ----- " + authenticationRepository);
     final RestAuthenticationProvider provider = new RestAuthenticationProvider(userProfileResolver);
     provider.setAuthenticationRepository(authenticationRepository);

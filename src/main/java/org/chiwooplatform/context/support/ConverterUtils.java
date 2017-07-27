@@ -145,7 +145,7 @@ public final class ConverterUtils {
   }
 
   /**
-   * Rebind the data type for Boolean properties.
+   * Rebind the tokens type for Boolean properties.
    *
    * @param params map parameter
    * @param properties Boolean attribute name
@@ -160,7 +160,7 @@ public final class ConverterUtils {
   }
 
   /**
-   * Rebind the data type for Boolean properties.
+   * Rebind the tokens type for Boolean properties.
    *
    * @param params 파라미터 맵
    */
