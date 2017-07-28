@@ -34,7 +34,7 @@ import org.junit.runner.RunWith;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@ActiveProfiles(profiles = { "home" })
+@ActiveProfiles(profiles = { /*"home", */"default" })
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { AbstractMongoTests.class,
         MongoAuthenticationRepositoryTest.MongoConfiguration.class })
@@ -65,6 +65,14 @@ public class MongoAuthenticationRepositoryTest {
     public void testObjects() throws Exception {
         log.info("mongoTemplate: {}", mongoTemplate);
         log.info("authenticationRepository: {}", authenticationRepository);
+    }
+    
+    @Test
+    public void testName() throws Exception {
+        log.info("{}", System.currentTimeMillis());
+        log.info("A {}", DateUtils.getFormattedString(1501153277215L));
+        log.info("B {}", DateUtils.getFormattedString(1501156917036L));
+        log.info("C {}", DateUtils.getFormattedString(1501157173852L));
     }
 
     UserProfile user() {
@@ -137,7 +145,7 @@ public class MongoAuthenticationRepositoryTest {
         UserProfile user = user();
         AuthenticationUser oldUser = authenticationRepository.findOne(user.getUsername());
         final String token = UUIDGenerator.uuid();
-        final Long expires = DateUtils.timeMillis(DateUtils.plusMins(3));
+        final Long expires = DateUtils.timeMillis(DateUtils.plusMins(1));
         AuthenticationUser newUser = oldUser.newUser();
         newUser.authentication(token, expires);
         log.debug("New AuthenticationUser: {}", newUser);
@@ -145,13 +153,26 @@ public class MongoAuthenticationRepositoryTest {
     }
 
     @Test
+    public void ut1006_saveOrUpdate() throws Exception {
+        UserProfile user = user();
+        AuthenticationUser oldUser = authenticationRepository.findOne(user.getUsername());
+        final String token = UUIDGenerator.uuid();
+        final Long expires = DateUtils.timeMillis(DateUtils.plusMins(1));
+        AuthenticationUser newUser = oldUser.newUser();
+        newUser.authentication(token, expires);
+        log.debug("New AuthenticationUser: {}", newUser);
+        authenticationRepository.saveOrUpdate(newUser);
+    }
+
+    
+    @Test
     public void ut1006_findDocuments() throws Exception {
         UserProfile user = user();
         Query query = new Query(Criteria.where("_id").is(user.getUsername()));
         query.fields().include("tokens");
         log.info("query: {}", query.toString());
         Collection<AuthenticationUser> result = authenticationRepository
-                .findDocuments(query, AuthenticationUser.class);
+                .findQuery(query, AuthenticationUser.class);
         log.info("result: {}", result);
     }
 
@@ -168,19 +189,10 @@ public class MongoAuthenticationRepositoryTest {
     }
 
     @Test
-    public void testName() throws Exception {
-        log.info("{}", System.currentTimeMillis());
-        log.info("A {}", DateUtils.getFormattedString(1501153277215L));
-        log.info("B {}", DateUtils.getFormattedString(1501156917036L));
-        log.info("C {}", DateUtils.getFormattedString(1501157173852L));
-    }
-
-    @Test
     public void ut1008_findTokenExpires() throws Exception {
         UserProfile user = user();
-        final Long currentTimestamp = System.currentTimeMillis();
         Query query = new Query(Criteria.where("_id").is(user.getUsername())
-        // .and("tokens.expires").lt(currentTimestamp)
+        // .and("tokens.expires").lt(System.currentTimeMillis())
         );
         query.fields().include("tokens");
         log.info("query: {}", query);
@@ -200,8 +212,6 @@ public class MongoAuthenticationRepositoryTest {
                 }
             });
         }
-
-        // 86afdd0a-a479-4271-86c6-cfddf074759e
 
     }
 

@@ -12,11 +12,12 @@ import org.chiwooplatform.samples.model.AuthenticationUser;
  * http://docs.spring.io/spring-tokens/mongodb/docs/current/reference/html/#repository-query-keywords
  */
 @Document(collection = "authentications")
-public interface AuthenticationRepository extends MongoRepository<AuthenticationUser, String> {
+public interface AuthenticationRepository
+        extends MongoRepository<AuthenticationUser, String> {
 
-  AuthenticationUser findByUsername(String username);
+    AuthenticationUser findByUsername(String username);
 
-  AuthenticationUser findByToken(String token);
+    AuthenticationUser findByToken(String token);
 
-  List<AuthenticationUser> findByUsernameLike(String username);
+    List<AuthenticationUser> findByUsernameLike(String username);
 }

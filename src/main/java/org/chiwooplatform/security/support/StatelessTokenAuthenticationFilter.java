@@ -47,73 +47,79 @@ import org.slf4j.LoggerFactory;
   
  * </code>
  */
-public class StatelessTokenAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+public class StatelessTokenAuthenticationFilter
+        extends AbstractAuthenticationProcessingFilter {
 
-  private final Logger logger = LoggerFactory.getLogger(StatelessTokenAuthenticationFilter.class);
+    private final Logger logger = LoggerFactory
+            .getLogger(StatelessTokenAuthenticationFilter.class);
 
-  private OrRequestMatcher excludMatcher;
+    private OrRequestMatcher excludMatcher;
 
-  private void filterExcludedUrls(final String... urls) {
-    final List<RequestMatcher> requestMatchers = Arrays.asList(urls).stream()
-        .map(v -> new AntPathRequestMatcher(v)).collect(Collectors.toList());
-    excludMatcher = new OrRequestMatcher(requestMatchers);
-  }
-
-  public StatelessTokenAuthenticationFilter() {
-    super("/**");
-  }
-
-  public StatelessTokenAuthenticationFilter(String filterProcessesUrl) {
-    super(filterProcessesUrl);
-  }
-
-  public StatelessTokenAuthenticationFilter(String filterProcessesUrl,
-      String... filterExcludedUrls) {
-    super(filterProcessesUrl);
-    if (filterExcludedUrls != null) {
-      filterExcludedUrls(filterExcludedUrls);
+    private void filterExcludedUrls(final String... urls) {
+        final List<RequestMatcher> requestMatchers = Arrays.asList(urls).stream()
+                .map(v -> new AntPathRequestMatcher(v)).collect(Collectors.toList());
+        excludMatcher = new OrRequestMatcher(requestMatchers);
     }
-  }
 
- 
-  @Override
-  protected boolean requiresAuthentication(HttpServletRequest request,
-      HttpServletResponse response) {
-    if (excludMatcher != null && excludMatcher.matches(request)) {
-      return false;
+    public StatelessTokenAuthenticationFilter() {
+        super("/**");
     }
-    return super.requiresAuthentication(request, response);
-  }
 
-  @Override
-  public Authentication attemptAuthentication(HttpServletRequest request,
-      HttpServletResponse response) throws AuthenticationException, IOException {
-    
-    Optional<String> optionalToken = Optional.ofNullable(request.getHeader(Constants.AUTH_TOKEN));
-
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    final String restToken;
-    if (authentication instanceof RestAuthenticationToken) {
-      RestAuthenticationToken restAuth = (RestAuthenticationToken) authentication;
-      restToken = restAuth.getToken();
-    } else {
-      restToken = null;
+    public StatelessTokenAuthenticationFilter(String filterProcessesUrl) {
+        super(filterProcessesUrl);
     }
-    final String token = optionalToken.isPresent() ? optionalToken.get() : restToken;
-    logger.debug("token: {}", token);
-    return new RestAuthenticationToken(token);
-  }
 
-  @Override
-  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-      FilterChain chain, Authentication authResult) throws IOException, ServletException {
-    super.successfulAuthentication(request, response, chain, authResult);
-    chain.doFilter(request, response);
-  }
+    public StatelessTokenAuthenticationFilter(String filterProcessesUrl,
+            String... filterExcludedUrls) {
+        super(filterProcessesUrl);
+        if (filterExcludedUrls != null) {
+            filterExcludedUrls(filterExcludedUrls);
+        }
+    }
 
-  @Override
-  public void afterPropertiesSet() {
-    Assert.notNull(getAuthenticationManager(), "authenticationManager must be specified");
-    // Assert.notNull(this.tokenValidators, "TokenValidators must be specified");
-  }
+    @Override
+    protected boolean requiresAuthentication(HttpServletRequest request,
+            HttpServletResponse response) {
+        if (excludMatcher != null && excludMatcher.matches(request)) {
+            return false;
+        }
+        return super.requiresAuthentication(request, response);
+    }
+
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request,
+            HttpServletResponse response) throws AuthenticationException, IOException {
+
+        Optional<String> optionalToken = Optional
+                .ofNullable(request.getHeader(Constants.AUTH_TOKEN));
+
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
+        final String restToken;
+        if (authentication instanceof RestAuthenticationToken) {
+            RestAuthenticationToken restAuth = (RestAuthenticationToken) authentication;
+            restToken = restAuth.getToken();
+        }
+        else {
+            restToken = null;
+        }
+        final String token = optionalToken.isPresent() ? optionalToken.get() : restToken;
+        logger.debug("token: {}", token);
+        return new RestAuthenticationToken(token);
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request,
+            HttpServletResponse response, FilterChain chain, Authentication authResult)
+            throws IOException, ServletException {
+        super.successfulAuthentication(request, response, chain, authResult);
+        chain.doFilter(request, response);
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        Assert.notNull(getAuthenticationManager(),
+                "authenticationManager must be specified");
+        // Assert.notNull(this.tokenValidators, "TokenValidators must be specified");
+    }
 }

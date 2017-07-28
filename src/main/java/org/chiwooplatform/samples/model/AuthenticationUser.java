@@ -26,36 +26,36 @@ import lombok.ToString;
 @Document(collection = "authentications")
 public class AuthenticationUser implements Serializable {
 
-  @Id
-  private String username;
+    @Id
+    private String username;
 
-  private String token; /* token. It can be modified with new token */
+    private String token; /* token. It can be modified with new token */
 
-  /* UTC Timestamp "2014-01-31T15:30", It can be modified with new token */
-  private Long expires;
+    /* UTC Timestamp "2014-01-31T15:30", It can be modified with new token */
+    private Long expires;
 
-  private Integer userId;
+    private Integer userId;
 
-  private Collection<GrantedAuthority> authorities;
+    private Collection<GrantedAuthority> authorities;
 
-  private Collection<UserToken> tokens = new HashSet<>();
+    private Collection<UserToken> tokens = new HashSet<>();
 
-  public void authentication(final String token, final Long expires) {
-    if (StringUtils.isEmpty(token) || DateUtils.isExpired(expires)) {
-      return;
+    public void authentication(final String token, final Long expires) {
+        if (StringUtils.isEmpty(token) || DateUtils.isExpired(expires)) {
+            return;
+        }
+        final UserToken ut = new UserToken(token, expires);
+        tokens.add(ut);
     }
-    final UserToken ut = new UserToken(token, expires);
-    tokens.add(ut);
-  }
 
-  public Collection<UserToken> activeTokens() {
-    if (this.tokens.size() > 0) {
-      final List<UserToken> tokens = this.tokens.stream()
-          .filter((v) -> !DateUtils.isExpired(v.getExpires())).collect(Collectors.toList());
-      return tokens;
+    public Collection<UserToken> activeTokens() {
+        if (this.tokens.size() > 0) {
+            final List<UserToken> tokens = this.tokens.stream()
+                    .filter((v) -> !DateUtils.isExpired(v.getExpires()))
+                    .collect(Collectors.toList());
+            return tokens;
+        }
+        return this.tokens;
     }
-    return this.tokens;
-  }
-
 
 }

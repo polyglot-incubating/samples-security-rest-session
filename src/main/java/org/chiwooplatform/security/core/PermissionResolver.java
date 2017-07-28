@@ -4,5 +4,5 @@ import java.util.Map;
 
 public interface PermissionResolver {
 
-  boolean hasPermission(Map<String, Object> args);
+    boolean hasPermission(Map<String, Object> args);
 }

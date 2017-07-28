@@ -15,41 +15,41 @@ import org.slf4j.LoggerFactory;
 
 public class JdbcUserAuthoritzLoader implements UserAuthoritzLoader, InitializingBean {
 
-  private final Logger logger = LoggerFactory.getLogger(JdbcUserAuthoritzLoader.class);
+    private final Logger logger = LoggerFactory.getLogger(JdbcUserAuthoritzLoader.class);
 
-  private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-  @Autowired
-  public JdbcUserAuthoritzLoader(JdbcTemplate jdbcTemplate) {
-    super();
-    this.jdbcTemplate = jdbcTemplate;
-  }
+    @Autowired
+    public JdbcUserAuthoritzLoader(JdbcTemplate jdbcTemplate) {
+        super();
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-  private static final String SQL = selectSql();
+    private static final String SQL = selectSql();
 
-  private static String selectSql() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("select  p.perm_cd ");
-    builder.append('\n').append("from    USER u ");
-    builder.append('\n').append("inner   join USER_PERM_REL p");
-    builder.append('\n').append("where   u.username = ? ");
-    builder.append('\n').append("and     enabled = 1 ");
-    builder.append('\n').append("and     u.id = p.user_id ");
-    return builder.toString();
-  }
+    private static String selectSql() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("select  p.perm_cd ");
+        builder.append('\n').append("from    USER u ");
+        builder.append('\n').append("inner   join USER_PERM_REL p");
+        builder.append('\n').append("where   u.username = ? ");
+        builder.append('\n').append("and     enabled = 1 ");
+        builder.append('\n').append("and     u.id = p.user_id ");
+        return builder.toString();
+    }
 
-  @Override
-  public Collection<GrantedAuthority> loadUserAuthorities(Object principal) {
-    logger.debug("principal: {}", principal);
-    return jdbcTemplate.query(SQL, new Object[] {principal}, (rs, num) -> {
-      GrantedAuthority ga = new SimpleGrantedAuthority(rs.getString("perm_cd"));
-      return ga;
-    });
-  }
+    @Override
+    public Collection<GrantedAuthority> loadUserAuthorities(Object principal) {
+        logger.debug("principal: {}", principal);
+        return jdbcTemplate.query(SQL, new Object[] { principal }, (rs, num) -> {
+            GrantedAuthority ga = new SimpleGrantedAuthority(rs.getString("perm_cd"));
+            return ga;
+        });
+    }
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    Assert.notNull(jdbcTemplate, "JdbcTemplate must be specified");
-  }
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(jdbcTemplate, "JdbcTemplate must be specified");
+    }
 
 }

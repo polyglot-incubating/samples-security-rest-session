@@ -12,16 +12,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @SpringBootApplication
 public class SamplesRestMongoApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(SamplesRestMongoApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(SamplesRestMongoApplication.class, args);
+    }
 
-  @Bean
-  public Jackson2ObjectMapperBuilder objectMapperBuilder() {
-    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-    builder.serializationInclusion(JsonInclude.Include.NON_NULL);
-    builder.indentOutput(true);
-    builder.failOnUnknownProperties(false);
-    return builder;
-  }
+    @Bean
+    public Jackson2ObjectMapperBuilder objectMapperBuilder() {
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
+        builder.indentOutput(true);
+        builder.failOnUnknownProperties(false);
+        return builder;
+    }
 }

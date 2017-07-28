@@ -3,10 +3,10 @@ package org.chiwooplatform.security.authentication;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import org.springframework.util.StringUtils;
 
 import org.chiwooplatform.context.support.DateUtils;
-import org.springframework.util.StringUtils;
 
 public class AuthenticationUser {
 
@@ -14,7 +14,10 @@ public class AuthenticationUser {
 
     private Integer userId;
 
-    private List<SimpleToken> tokens; /* token. It can be modified with new token */
+    /*
+     * token. It can be modified with new token
+     */
+    private List<SimpleToken> tokens = new ArrayList<>();
 
     private Collection<String> authorities;
 
@@ -30,25 +33,13 @@ public class AuthenticationUser {
         return o;
     }
 
-    public void authentication(final String token, final Long expires) {
+    public boolean authentication(final String token, final Long expires) {
         if (StringUtils.isEmpty(token) || DateUtils.isExpired(expires)) {
-            return;
+            return false;
         }
         final SimpleToken simpleToken = new SimpleToken(token, expires);
-        if (tokens == null) {
-            tokens = new ArrayList<>();
-        }
         tokens.add(simpleToken);
-    }
-
-    public List<SimpleToken> activeTokens() {
-        if (this.tokens.size() > 0) {
-            final List<SimpleToken> tokens = this.tokens.stream()
-                    // .filter( ( v ) -> !DateUtils.isExpired( (Long) v.getExpires() ) )
-                    .collect(Collectors.toList());
-            return tokens;
-        }
-        return this.tokens;
+        return true;
     }
 
     @Override
@@ -79,6 +70,13 @@ public class AuthenticationUser {
 
     public void setTokens(List<SimpleToken> tokens) {
         this.tokens = tokens;
+    }
+
+    public void addTokens(List<SimpleToken> tokens) {
+        if (this.tokens == null) {
+            this.tokens = new ArrayList<>();
+        }
+        this.tokens.addAll(tokens);
     }
 
     public Collection<String> getAuthorities() {

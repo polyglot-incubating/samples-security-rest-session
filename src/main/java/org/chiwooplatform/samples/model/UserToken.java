@@ -6,6 +6,6 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class UserToken {
-  private String token;
-  private Long expires;
+    private String token;
+    private Long expires;
 }

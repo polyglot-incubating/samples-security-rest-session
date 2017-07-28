@@ -6,7 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 public interface UserAuthoritzLoader {
 
-  String COMPONENT_NAME = "userAuthoritzLoader";
+    String COMPONENT_NAME = "userAuthoritzLoader";
 
-  Collection<GrantedAuthority> loadUserAuthorities(Object principal);
+    Collection<GrantedAuthority> loadUserAuthorities(Object principal);
 }

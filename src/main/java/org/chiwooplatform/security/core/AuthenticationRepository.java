@@ -1,6 +1,6 @@
 package org.chiwooplatform.security.core;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.mongodb.core.query.Query;
@@ -10,33 +10,34 @@ import org.springframework.data.mongodb.core.query.Query;
  */
 public interface AuthenticationRepository<T> {
 
-  String COMPONENT_NAME = "authenticationRepository";
+    String COMPONENT_NAME = "authenticationRepository";
 
-  void add(T model);
+    void add(T model);
 
-  void save(T model);
+    T findOne(String principal);
 
-  boolean exists(String id);
+    List<T> findAll(Map<String, Object> param);
 
-  boolean remove(String id);
+    public <D> List<D> findQuery(Query query, Class<D> clazz);
 
-  T findOne(String principal);
+    public <D> D findProjection(Query query, Class<D> clazz);
 
-  Collection<T> findAll(Map<String, Object> param);
+    boolean exists(String id);
 
-  public <D> Collection<D> findDocuments(Query query, Class<D> clazz);
+    void save(T model);
 
-  public <D> D findProjection(Query query, Class<D> clazz);
+    void saveOrUpdate(T model);
 
-  void cleanExpiresToken(T model);
+    void clearExpiredTokens(T model);
 
-  // @FunctionalInterface
-  // interface QueryId<T, R extends Query> {
-  // R queryID(T id);
-  // }
-  //
-  // {
-  // return new Query(Criteria.where("id").is(id));
+    boolean remove(String id);
 
+    // @FunctionalInterface
+    // interface QueryId<T, R extends Query> {
+    // R queryID(T id);
+    // }
+    //
+    // {
+    // return new Query(Criteria.where("id").is(id));
 
 }

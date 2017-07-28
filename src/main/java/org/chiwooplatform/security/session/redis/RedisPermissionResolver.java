@@ -11,26 +11,27 @@ import org.slf4j.LoggerFactory;
 
 public class RedisPermissionResolver implements PermissionResolver {
 
-  private final transient Logger logger = LoggerFactory.getLogger(RedisPermissionResolver.class);
+    private final transient Logger logger = LoggerFactory
+            .getLogger(RedisPermissionResolver.class);
 
-  final RedisBackedSessionRegistry registry;
+    final RedisBackedSessionRegistry registry;
 
-  public RedisPermissionResolver(RedisBackedSessionRegistry registry) {
-    this.registry = registry;
-  }
-
-  @Override
-  public boolean hasPermission(Map<String, Object> args) {
-    logger.debug("args: {}", args);
-    // final String principal = (String) args.get(Constants.PRINCIPAL);
-    // final String permCd = (String) args.get(Constants.PERM_CODE);
-    final String token = (String) args.get(Constants.TOKEN);
-
-    SessionInformation session = registry.getSessionInformation((String) token);
-    if (session == null || session.isExpired()) {
-      return false;
+    public RedisPermissionResolver(RedisBackedSessionRegistry registry) {
+        this.registry = registry;
     }
-    return false;
-  }
+
+    @Override
+    public boolean hasPermission(Map<String, Object> args) {
+        logger.debug("args: {}", args);
+        // final String principal = (String) args.get(Constants.PRINCIPAL);
+        // final String permCd = (String) args.get(Constants.PERM_CODE);
+        final String token = (String) args.get(Constants.TOKEN);
+
+        SessionInformation session = registry.getSessionInformation((String) token);
+        if (session == null || session.isExpired()) {
+            return false;
+        }
+        return false;
+    }
 
 }

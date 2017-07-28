@@ -41,43 +41,45 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-  private static final String[] EXCLUDED_WEB_STATIC_RESOURCES = new String[] {"/static/**",
-      "/assets/**", "/resources/**", "/favicon.ico", "/css/**", "/js/**"};
+    private static final String[] EXCLUDED_WEB_STATIC_RESOURCES = new String[] {
+            "/static/**", "/assets/**", "/resources/**", "/favicon.ico", "/css/**",
+            "/js/**" };
 
-  public SecurityConfiguration() {
-    // super(true);
-  }
-
-  protected String[] staticUriPatterns() {
-    return null;
-  }
-
-  private String[] ignoringPaths() {
-    String[] uris = staticUriPatterns();
-    if (uris == null) {
-      return EXCLUDED_WEB_STATIC_RESOURCES;
+    public SecurityConfiguration() {
+        // super(true);
     }
-    return uris;
-  }
 
-  @Override
-  public void configure(WebSecurity web) throws Exception {
+    protected String[] staticUriPatterns() {
+        return null;
+    }
+
+    private String[] ignoringPaths() {
+        String[] uris = staticUriPatterns();
+        if (uris == null) {
+            return EXCLUDED_WEB_STATIC_RESOURCES;
+        }
+        return uris;
+    }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
     // @formatter:off
     web.ignoring().antMatchers(HttpMethod.OPTIONS, "/**").antMatchers("/h2-console/**")
         .antMatchers(ignoringPaths());
     // @formatter:on
-    // Apply-EL TO JSP-VIEW
-    // DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-    // handler.setPermissionEvaluator( permissionEvaluator() );
-    // web.expressionHandler( handler );
-  }
+        // Apply-EL TO JSP-VIEW
+        // DefaultWebSecurityExpressionHandler handler = new
+        // DefaultWebSecurityExpressionHandler();
+        // handler.setPermissionEvaluator( permissionEvaluator() );
+        // web.expressionHandler( handler );
+    }
 
-  @Autowired
-  private RedisBackedSessionRegistry sessionRegistry;
+    @Autowired
+    private RedisBackedSessionRegistry sessionRegistry;
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    DefaultCorsConfiguration cors = new DefaultCorsConfiguration();
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        DefaultCorsConfiguration cors = new DefaultCorsConfiguration();
     // @formatter:off
     http.csrf().disable().cors().configurationSource(cors)
         .and().anonymous().authenticationFilter(new AnonymousStatelessAuthenticationFilter(UUIDGenerator.uuid()))
@@ -101,64 +103,68 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .addFilter(new WebAsyncManagerIntegrationFilter())
         .addFilterBefore( restAuthenticationFilter, UsernamePasswordAuthenticationFilter.class );
     // @formatter:on
-  }
+    }
 
-  @Bean
-  public RestAuthenticationFilter restAuthenticationFilter(ObjectMapper objectMapper)
-      throws Exception {
-    final String loginUri = "/identity/auth/tokens";
-    final RestAuthenticationFilter filter = new RestAuthenticationFilter(loginUri, objectMapper);
-    filter.setAuthenticationManager(authenticationManager());
-    return filter;
-  }
+    @Bean
+    public RestAuthenticationFilter restAuthenticationFilter(ObjectMapper objectMapper)
+            throws Exception {
+        final String loginUri = "/identity/auth/tokens";
+        final RestAuthenticationFilter filter = new RestAuthenticationFilter(loginUri,
+                objectMapper);
+        filter.setAuthenticationManager(authenticationManager());
+        return filter;
+    }
 
-  @Autowired
-  private RestAuthenticationFilter restAuthenticationFilter;
+    @Autowired
+    private RestAuthenticationFilter restAuthenticationFilter;
 
-  private UserAuthoritzLoader userAuthoritzLoader(JdbcTemplate jdbcTemplate) {
-    final JdbcUserAuthoritzLoader jdbcUserAuthoritzLoader =
-        new JdbcUserAuthoritzLoader(jdbcTemplate);
-    return jdbcUserAuthoritzLoader;
-  }
+    private UserAuthoritzLoader userAuthoritzLoader(JdbcTemplate jdbcTemplate) {
+        final JdbcUserAuthoritzLoader jdbcUserAuthoritzLoader = new JdbcUserAuthoritzLoader(
+                jdbcTemplate);
+        return jdbcUserAuthoritzLoader;
+    }
 
-  private MongoAuthenticationRepository authenticationRepository(MongoTemplate mongoTemplate) {
-    final MongoAuthenticationRepository repository =
-        new MongoAuthenticationRepository(mongoTemplate);
-    return repository;
-  }
+    private MongoAuthenticationRepository authenticationRepository(
+            MongoTemplate mongoTemplate) {
+        final MongoAuthenticationRepository repository = new MongoAuthenticationRepository(
+                mongoTemplate);
+        return repository;
+    }
 
-  private UserProfileResolver userProfileResolver(JdbcTemplate jdbcTemplate) {
-    final JdbcUserProfileResolver userPrincipalResolver = new JdbcUserProfileResolver(jdbcTemplate);
-    userPrincipalResolver.setUserAuthoritzLoader(userAuthoritzLoader(jdbcTemplate));
-    return userPrincipalResolver;
-  }
+    private UserProfileResolver userProfileResolver(JdbcTemplate jdbcTemplate) {
+        final JdbcUserProfileResolver userPrincipalResolver = new JdbcUserProfileResolver(
+                jdbcTemplate);
+        userPrincipalResolver.setUserAuthoritzLoader(userAuthoritzLoader(jdbcTemplate));
+        return userPrincipalResolver;
+    }
 
-  @Bean
-  public AuthenticationProvider authenticationProvider(JdbcTemplate jdbcTemplate,
-      MongoTemplate mongoTemplate) {
-    final UserProfileResolver userProfileResolver = userProfileResolver(jdbcTemplate);
-    final AuthenticationRepository<AuthenticationUser> authenticationRepository =
-        authenticationRepository(mongoTemplate);
-    // System.out.println("UserProfileResolver ----- " + userProfileResolver);
-    // System.out.println("AuthenticationRepository ----- " + authenticationRepository);
-    final RestAuthenticationProvider provider = new RestAuthenticationProvider(userProfileResolver);
-    provider.setAuthenticationRepository(authenticationRepository);
-    return provider;
-  }
+    @Bean
+    public AuthenticationProvider authenticationProvider(JdbcTemplate jdbcTemplate,
+            MongoTemplate mongoTemplate) {
+        final UserProfileResolver userProfileResolver = userProfileResolver(jdbcTemplate);
+        final AuthenticationRepository<AuthenticationUser> authenticationRepository = authenticationRepository(
+                mongoTemplate);
+        // System.out.println("UserProfileResolver ----- " + userProfileResolver);
+        // System.out.println("AuthenticationRepository ----- " +
+        // authenticationRepository);
+        final RestAuthenticationProvider provider = new RestAuthenticationProvider(
+                userProfileResolver);
+        provider.setAuthenticationRepository(authenticationRepository);
+        return provider;
+    }
 
-  @Autowired
-  private AuthenticationProvider authenticationProvider;
+    @Autowired
+    private AuthenticationProvider authenticationProvider;
 
-
-  @Bean
-  public HeaderHttpSessionStrategy headerHttpSessionStrategy() {
-    return new HeaderHttpSessionStrategy();
-  }
-  // // @ConditionalOnBean(name = "sessionRedisTemplate")
-  // @ConditionalOnBean(RedisOperationsSessionRepository.class)
-  // @Bean
-  // public RedisBackedSessionRegistry sessionRegistry() {
-  // System.out.println( "@Bean RedisBackedSessionRegistry" );
-  // return new RedisBackedSessionRegistry( sessionRepository );
-  // }
+    @Bean
+    public HeaderHttpSessionStrategy headerHttpSessionStrategy() {
+        return new HeaderHttpSessionStrategy();
+    }
+    // // @ConditionalOnBean(name = "sessionRedisTemplate")
+    // @ConditionalOnBean(RedisOperationsSessionRepository.class)
+    // @Bean
+    // public RedisBackedSessionRegistry sessionRegistry() {
+    // System.out.println( "@Bean RedisBackedSessionRegistry" );
+    // return new RedisBackedSessionRegistry( sessionRepository );
+    // }
 }
