@@ -3,11 +3,11 @@ package org.chiwooplatform.security.authentication;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.util.StringUtils;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import org.chiwooplatform.context.support.DateUtils;
-
+@Document(collection = "authenticationUser")
 public class AuthenticationUser {
 
     private String id;
@@ -25,21 +25,15 @@ public class AuthenticationUser {
         super();
     }
 
-    public AuthenticationUser newUser() {
+    public AuthenticationUser newUser(final List<SimpleToken> newTokens) {
+        List<SimpleToken> activeTokens = this.activeTokens();
+        activeTokens.addAll(newTokens);
         AuthenticationUser o = new AuthenticationUser();
         o.setId(this.id);
         o.setUserId(this.userId);
         o.setAuthorities(authorities);
+        o.setTokens(activeTokens);
         return o;
-    }
-
-    public boolean authentication(final String token, final Long expires) {
-        if (StringUtils.isEmpty(token) || DateUtils.isExpired(expires)) {
-            return false;
-        }
-        final SimpleToken simpleToken = new SimpleToken(token, expires);
-        tokens.add(simpleToken);
-        return true;
     }
 
     @Override
@@ -72,11 +66,22 @@ public class AuthenticationUser {
         this.tokens = tokens;
     }
 
-    public void addTokens(List<SimpleToken> tokens) {
+    private List<SimpleToken> activeTokens() {
+        if (getTokens() == null) {
+            return new ArrayList<>();
+        }
+        final long currentTimestamp = System.currentTimeMillis();
+        final List<SimpleToken> activeTokens = getTokens().stream()
+                .filter((t) -> t.getExpires() > currentTimestamp)
+                .collect(Collectors.toList());
+        return activeTokens;
+    }
+
+    public void addToken(final SimpleToken token) {
         if (this.tokens == null) {
             this.tokens = new ArrayList<>();
         }
-        this.tokens.addAll(tokens);
+        this.tokens.add(token);
     }
 
     public Collection<String> getAuthorities() {

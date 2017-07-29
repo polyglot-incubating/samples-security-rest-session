@@ -1,7 +1,10 @@
 package org.chiwooplatform.security.authentication;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+@Document
 @JsonSerialize
 public class SimpleToken {
     private String token;

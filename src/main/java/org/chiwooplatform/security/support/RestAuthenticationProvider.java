@@ -3,6 +3,16 @@ package org.chiwooplatform.security.support;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import org.chiwooplatform.context.support.DateUtils;
+import org.chiwooplatform.security.authentication.AuthenticationUser;
+import org.chiwooplatform.security.authentication.RestAuthenticationToken;
+import org.chiwooplatform.security.authentication.SimpleToken;
+import org.chiwooplatform.security.core.AuthenticationRepository;
+import org.chiwooplatform.security.core.UserProfile;
+import org.chiwooplatform.security.core.UserProfileResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -13,15 +23,6 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
-import org.chiwooplatform.context.support.DateUtils;
-import org.chiwooplatform.security.authentication.AuthenticationUser;
-import org.chiwooplatform.security.authentication.RestAuthenticationToken;
-import org.chiwooplatform.security.core.AuthenticationRepository;
-import org.chiwooplatform.security.core.UserProfile;
-import org.chiwooplatform.security.core.UserProfileResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Please use this filter for testing purposes only.
@@ -40,8 +41,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
     private final transient Logger logger = LoggerFactory
             .getLogger(RestAuthenticationProvider.class);
 
-    // TODO 나중에 지정 하자.
-    // private static final int EXPIRES_DAYS = 30;
+    private static final int EXPIRES_DAYS = 1;
 
     private final UserProfileResolver userProfileResolver;
 
@@ -57,6 +57,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         this.authenticationRepository = authenticationRepository;
     }
 
+    @Autowired
     public RestAuthenticationProvider(UserProfileResolver userPrincipalResolver) {
         super();
         this.userProfileResolver = userPrincipalResolver;
@@ -75,23 +76,14 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         return authorities;
     }
 
-    private AuthenticationUser authenticationUser(
-            RestAuthenticationToken authentication) {
-        if (authentication == null) {
-            return null;
-        }
+    private AuthenticationUser authenticationUser(UserProfile user, final String token,
+            final Long expires) {
+        final SimpleToken simpleToken = new SimpleToken(token, expires);
         AuthenticationUser model = new AuthenticationUser();
-        model.setId(authentication.getPrincipal().toString());
-        model.authentication(authentication.getToken(),
-                authentication.getExpires());
-        UserProfile user;
-        if (authentication.getDetails() != null) {
-            user = (UserProfile) authentication.getDetails();
-            if (user != null) {
-                model.setAuthorities(authorities(user));
-                model.setUserId(user.getId());
-            }
-        }
+        model.setId(user.getUsername());
+        model.addToken(simpleToken);
+        model.setAuthorities(authorities(user));
+        model.setUserId(user.getId());
         return model;
     }
 
@@ -105,6 +97,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         try {
             RestAuthenticationToken authenticationToken = (RestAuthenticationToken) authentication;
             logger.debug("username: {}", username);
+            logger.debug("authenticationRepository: {}", authenticationRepository);
             UserProfile user = userProfileResolver.getUser(username);
             userDetailsChecker.check(user);
             String credentials = authentication.getCredentials().toString();
@@ -120,15 +113,11 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
             }
             final RestAuthenticationToken newAuthentication = new RestAuthenticationToken(
                     user);
-            // final Long expires =
-            // DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
-            // TODO 테스트 하는 동안은 토큰 만료일을 10분 뒤로 하자.
-            final Long expires = DateUtils.timeMillis(DateUtils.plusMins(10));
+            final Long expires = DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
             newAuthentication.setExpires(expires);
             if (authenticationRepository != null) {
-                AuthenticationUser authenticationUser = authenticationUser(
-                        newAuthentication);
-                authenticationRepository.clearExpiredTokens(authenticationUser);
+                AuthenticationUser authenticationUser = authenticationUser(user, token,
+                        expires);
                 authenticationRepository.saveOrUpdate(authenticationUser);
             }
             return newAuthentication;

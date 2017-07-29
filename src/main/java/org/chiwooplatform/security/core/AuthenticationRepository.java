@@ -10,7 +10,8 @@ import org.springframework.data.mongodb.core.query.Query;
  */
 public interface AuthenticationRepository<T> {
 
-    String COMPONENT_NAME = "authenticationRepository";
+    String COMPONENT_NAME = "securityAuthenticationRepository";
+    String SECURITY_MONGO_COLLECTION_NAME = "authenticationUser";
 
     void add(T model);
 
@@ -22,15 +23,15 @@ public interface AuthenticationRepository<T> {
 
     public <D> D findProjection(Query query, Class<D> clazz);
 
-    boolean exists(String id);
+    boolean exists(Query query);
 
     void save(T model);
 
     void saveOrUpdate(T model);
 
-    void clearExpiredTokens(T model);
-
     boolean remove(String id);
+
+    void clearExpiredTokens(String id);
 
     // @FunctionalInterface
     // interface QueryId<T, R extends Query> {

@@ -41,7 +41,12 @@ public final class Constants {
     public static final String PRINCIPAL = "Principal";
 
     public static final String AUTH_TOKEN = "x-auth-token";
+    public static final String OAUTH_ACCESS_TOKEN = "access_token";
+    public static final String OAUTH_REFRESH_TOKEN = "refresh_token";
+    public static final String OAUTH_CLIENT_ID = "client_id";
+    public static final String OAUTH_CLIENT_SECRET = "client_secret";
 
+    //
     public static final String TOKEN = "token";
 
     public static final String PERM_CODE = "permCd";

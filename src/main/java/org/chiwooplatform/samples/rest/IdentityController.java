@@ -1,14 +1,21 @@
 package org.chiwooplatform.samples.rest;
 
+import java.net.URI;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import java.net.URI;
-
 import javax.servlet.http.HttpSession;
 
+import org.chiwooplatform.samples.dao.mongo.AuthenticationRepository;
+import org.chiwooplatform.samples.support.ConverterUtils;
+import org.chiwooplatform.security.authentication.AuthenticationUser;
+import org.chiwooplatform.security.authentication.RestAuthenticationToken;
+import org.chiwooplatform.security.authentication.SimpleCredentials;
+import org.chiwooplatform.security.authentication.SimpleToken;
+import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
+import org.chiwooplatform.web.support.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -32,14 +39,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import org.chiwooplatform.samples.dao.mongo.AuthenticationRepository;
-import org.chiwooplatform.samples.model.AuthenticationUser;
-import org.chiwooplatform.samples.support.ConverterUtils;
-import org.chiwooplatform.security.authentication.RestAuthenticationToken;
-import org.chiwooplatform.security.authentication.SimpleCredentials;
-import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
-import org.chiwooplatform.web.support.WebUtils;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -104,8 +103,9 @@ public class IdentityController {
             log.debug("newAuthentication: {}", newAuthentication);
             log.debug("principal: {}", newAuthentication.getPrincipal());
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-            authToken.authentication(newAuthentication.getToken(),
+            SimpleToken simpleToken = new SimpleToken(newAuthentication.getToken(),
                     newAuthentication.getExpires());
+            authToken.addToken(simpleToken);
             // repository.save(arg0)
             final URI location = WebUtils.uriLocation("/{id}",
                     newAuthentication.getName());
@@ -187,7 +187,7 @@ public class IdentityController {
                     .withMatcher("token", GenericPropertyMatchers.contains());
             Example<AuthenticationUser> example = Example.of(auth, matcher);
             return repository.findAll(example).stream().limit(5)
-                    .sorted(Comparator.comparing(AuthenticationUser::getUsername))
+                    .sorted(Comparator.comparing(AuthenticationUser::getId))
                     .collect(Collectors.toList());
         }
         catch (Exception e) {

@@ -1,23 +1,21 @@
 package org.chiwooplatform.security.session.mongo;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.chiwooplatform.security.authentication.AuthenticationUser;
+import org.chiwooplatform.security.core.AuthenticationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-import org.chiwooplatform.context.support.DateUtils;
-import org.chiwooplatform.security.authentication.AuthenticationUser;
-import org.chiwooplatform.security.authentication.SimpleToken;
-import org.chiwooplatform.security.core.AuthenticationRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.mongodb.BasicDBObject;
 import com.mongodb.WriteResult;
 
 /**
@@ -31,7 +29,7 @@ public class MongoAuthenticationRepository
 
     private final MongoTemplate mongoTemplate;
 
-    private final String collectionName = "authenticationUsers";
+    private final String collectionName = AuthenticationRepository.SECURITY_MONGO_COLLECTION_NAME;
 
     Query queryId(Object id) {
         return new Query(Criteria.where("_id").is(id));
@@ -60,8 +58,8 @@ public class MongoAuthenticationRepository
     }
 
     @Override
-    public boolean exists(String id) {
-        return mongoTemplate.exists(queryId(id), collectionName);
+    public boolean exists(Query query) {
+        return mongoTemplate.exists(query, collectionName);
     }
 
     public <D> List<D> findQuery(Query query, Class<D> clazz) {
@@ -85,50 +83,14 @@ public class MongoAuthenticationRepository
     }
 
     @Override
-    public void clearExpiredTokens(AuthenticationUser model) {
-        final String id = model.getId();
-        final AuthenticationUser user = findOne(id);
-        if (user == null || user.getTokens() == null) {
-            return;
-        }
-        List<Object> tokens = new ArrayList<>();
-        model.getTokens().stream().forEach((v) -> {
-            tokens.add(v);
-            long expires = (Long) v.getExpires();
-            if (DateUtils.isExpired(expires)) {
-                HashMap<String, Object> field = new HashMap<>();
-                field.put("token", v.getToken());
-                field.put("expires", v.getExpires());
-                tokens.add(field);
-            }
-        });
-        if (!tokens.isEmpty()) {
-            Query query = new Query(Criteria.where("_id").is(id));
-            final Update update = new Update();
-            update.pullAll("tokens", tokens.toArray());
-            /*
-             * 단건을 삭제할 경우엔 update.pull("tokens", new BasicDBObject("token",
-             * "3262c85d-cef2-41e7-988e-e8c0df44ee02")); 여러건을 삭제할 경우 json 데이타 구성을 맞춰 줘야
-             * 한다. 문제는 일반적인 PoJo 의 경우 json 마샬/언마샬 오류가 나온다. Map 은 기본으로 지원 하는 듯 하다.
-             */
-            logger.debug("update.getUpdateObject(): {}", update.getUpdateObject());
-            WriteResult wr = mongoTemplate.upsert(query, update, collectionName);
-            logger.debug("getUpsertedId {}", wr);
-        }
-    }
-
-    @Override
-    public void saveOrUpdate(AuthenticationUser newUser) {
-        final AuthenticationUser oldUser = findOne(newUser.getId());
+    public void saveOrUpdate(AuthenticationUser model) {
+        final AuthenticationUser oldUser = findOne(model.getId());
         if (oldUser == null) {
-            add(newUser);
+            add(model);
         }
         else {
-            List<SimpleToken> newTokens = newUser.getTokens();
-            if (newTokens != null) {
-                oldUser.addTokens(newTokens);
-                mongoTemplate.save(oldUser, collectionName);
-            }
+            final AuthenticationUser newUser = oldUser.newUser(model.getTokens());
+            mongoTemplate.save(newUser, collectionName);
         }
     }
 
@@ -136,6 +98,36 @@ public class MongoAuthenticationRepository
     public boolean remove(String id) {
         WriteResult result = mongoTemplate.remove(queryId(id), collectionName);
         return result.getN() == 1 ? true : false;
+    }
+
+    @Override
+    public void clearExpiredTokens(final String id) {
+        final AuthenticationUser user = findOne(id);
+        if (user == null || user.getTokens() == null) {
+            return;
+        }
+
+        final long currentTimestamp = System.currentTimeMillis();
+
+        List<Object> tokens = user.getTokens().stream()
+                .filter((v) -> v.getExpires() < currentTimestamp).map((v) -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("token", v.getToken());
+                    map.put("expires", v.getExpires());
+                    return new BasicDBObject(map);
+                }).collect(Collectors.toList());
+        if (!tokens.isEmpty()) {
+            Query query = new Query(Criteria.where("_id").is(id));
+            final Update update = new Update();
+            update.pullAll("tokens", tokens.toArray());
+            /*
+             * 단건을 삭제할 경우엔 update.pull("tokens", new BasicDBObject("token", "3262c85d-cef2-41e7-988e-e8c0df44ee02"));
+             * 여러건을 삭제할 경우 json 데이타 구성을 맞춰 줘야 한다. 문제는 일반적인 PoJo 의 경우 json 마샬/언마샬 오류가 나온다. Map 은 기본으로 지원 하는 듯 하다.
+             */
+            logger.debug("update.getUpdateObject(): {}", update.getUpdateObject());
+            WriteResult wr = mongoTemplate.upsert(query, update, collectionName);
+            logger.debug("getUpsertedId {}", wr);
+        }
     }
 
 }
