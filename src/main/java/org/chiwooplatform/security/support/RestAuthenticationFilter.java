@@ -5,13 +5,6 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.chiwooplatform.security.authentication.RestAuthenticationToken;
-import org.chiwooplatform.security.authentication.SimpleCredentials;
-import org.chiwooplatform.security.support.web.RestAuthenticationFailureHandler;
-import org.chiwooplatform.security.support.web.RestAuthenticationSuccessHandler;
-import org.chiwooplatform.web.support.WebUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -19,6 +12,14 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.Assert;
+
+import org.chiwooplatform.security.authentication.RestAuthenticationToken;
+import org.chiwooplatform.security.authentication.SimpleCredentials;
+import org.chiwooplatform.security.support.web.RestAuthenticationFailureHandler;
+import org.chiwooplatform.security.support.web.RestAuthenticationSuccessHandler;
+import org.chiwooplatform.web.support.WebUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -76,12 +77,10 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
         return objectMapper;
     }
 
-    private RestAuthenticationToken getRestAuthenticationToken(
-            HttpServletRequest request) {
+    private RestAuthenticationToken getRestAuthenticationToken(HttpServletRequest request) {
         RestAuthenticationToken authenticationToken;
         try {
-            SimpleCredentials credentials = getObjectMapper()
-                    .readValue(request.getReader(), SimpleCredentials.class);
+            SimpleCredentials credentials = getObjectMapper().readValue(request.getReader(), SimpleCredentials.class);
             final String principal = credentials.getUsername();
             final String password = credentials.getPassword();
             final String token = request.getSession().getId();
@@ -95,17 +94,15 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request,
-            HttpServletResponse response) throws AuthenticationException, IOException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+            throws AuthenticationException, IOException {
         logger.info("request.getMethod(): {}", request.getMethod());
         if (postOnly && !request.getMethod().equals("POST")) {
-            throw new AuthenticationServiceException(
-                    "Authentication method not supported: " + request.getMethod());
+            throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
         }
         if (!WebUtils.isAjaxRequest(request)) {
             throw new AuthenticationServiceException(
-                    "Authentication method only supported XMLHttpRequest."
-                            + request.getHeader("X-Requested-With"));
+                    "Authentication method only supported XMLHttpRequest." + request.getHeader("X-Requested-With"));
         }
         RestAuthenticationToken authRequest = getRestAuthenticationToken(request);
 
@@ -117,10 +114,8 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
     @Override
     public void afterPropertiesSet() {
-        Assert.notNull(getAuthenticationManager(),
-                "authenticationManager must be specified");
-        RestAuthenticationSuccessHandler successHandler = new RestAuthenticationSuccessHandler(
-                getObjectMapper());
+        Assert.notNull(getAuthenticationManager(), "authenticationManager must be specified");
+        RestAuthenticationSuccessHandler successHandler = new RestAuthenticationSuccessHandler(getObjectMapper());
         setAuthenticationSuccessHandler(successHandler);
         setAuthenticationFailureHandler(new RestAuthenticationFailureHandler());
     }

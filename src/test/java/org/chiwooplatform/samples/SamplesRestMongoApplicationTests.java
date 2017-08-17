@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 @SpringBootTest
 public class SamplesRestMongoApplicationTests {
 
-  @Test
-  public void contextLoads() {}
+    @Test
+    public void contextLoads() {
+    }
 }

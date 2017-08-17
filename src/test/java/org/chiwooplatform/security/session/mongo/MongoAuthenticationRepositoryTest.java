@@ -3,15 +3,6 @@ package org.chiwooplatform.security.session.mongo;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.chiwooplatform.context.support.DateUtils;
-import org.chiwooplatform.context.support.UUIDGenerator;
-import org.chiwooplatform.security.AbstractMongoTests;
-import org.chiwooplatform.security.authentication.AuthenticationUser;
-import org.chiwooplatform.security.authentication.SimpleToken;
-import org.chiwooplatform.security.core.AuthenticationRepository;
-import org.chiwooplatform.security.core.UserProfile;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -24,13 +15,22 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import org.chiwooplatform.context.support.DateUtils;
+import org.chiwooplatform.context.support.UUIDGenerator;
+import org.chiwooplatform.security.AbstractMongoTests;
+import org.chiwooplatform.security.authentication.AuthenticationUser;
+import org.chiwooplatform.security.authentication.SimpleToken;
+import org.chiwooplatform.security.core.AuthenticationRepository;
+import org.chiwooplatform.security.core.UserProfile;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ActiveProfiles(profiles = { "home", /* "default" */ })
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = { AbstractMongoTests.class,
-        MongoAuthenticationRepositoryTest.MongoConfiguration.class })
+@SpringBootTest(classes = { AbstractMongoTests.class, MongoAuthenticationRepositoryTest.MongoConfiguration.class })
 public class MongoAuthenticationRepositoryTest {
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -39,8 +39,7 @@ public class MongoAuthenticationRepositoryTest {
     @Configuration
     static class MongoConfiguration {
         @Bean
-        public AuthenticationRepository<AuthenticationUser> mongoAuthenticationRepository(
-                MongoTemplate mongoTemplate) {
+        public AuthenticationRepository<AuthenticationUser> mongoAuthenticationRepository(MongoTemplate mongoTemplate) {
             log.info("mongoTemplate: {}", mongoTemplate);
             return new MongoAuthenticationRepository(mongoTemplate);
         }
@@ -73,16 +72,14 @@ public class MongoAuthenticationRepositoryTest {
     UserProfile user() {
         UserProfile user = new UserProfile(761120, "lamp@gmail.com", null);
         user.setToken("ce2b0fe8-3631-4182-8052-c317e29cbfd2");
-        user.setAuthorities(AuthorityUtils.createAuthorityList("ROLE_ADMIN",
-                "ROLE_MANAGER", "ROLE_USER"));
+        user.setAuthorities(AuthorityUtils.createAuthorityList("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER"));
         return user;
     }
 
     Collection<String> authorities(UserProfile user) {
         Collection<String> authorities = null;
         if (user.getAuthorities() != null) {
-            authorities = user.getAuthorities().stream().map((v) -> v.getAuthority())
-                    .collect(Collectors.toList());
+            authorities = user.getAuthorities().stream().map((v) -> v.getAuthority()).collect(Collectors.toList());
         }
         return authorities;
     }
@@ -153,8 +150,7 @@ public class MongoAuthenticationRepositoryTest {
         Query query = new Query(Criteria.where("_id").is(user.getUsername()));
         query.fields().include("tokens");
         log.info("query: {}", query.toString());
-        Collection<AuthenticationUser> result = authenticationRepository.findQuery(query,
-                AuthenticationUser.class);
+        Collection<AuthenticationUser> result = authenticationRepository.findQuery(query, AuthenticationUser.class);
         log.info("result: {}", result);
     }
 
@@ -165,8 +161,7 @@ public class MongoAuthenticationRepositoryTest {
         query.fields().include("tokens");
         query.getQueryObject().containsField("token");
         log.info("query: {}", query.toString());
-        AuthenticationUser result = authenticationRepository.findProjection(query,
-                AuthenticationUser.class);
+        AuthenticationUser result = authenticationRepository.findProjection(query, AuthenticationUser.class);
         log.info("result: {}", result);
     }
 
@@ -178,19 +173,16 @@ public class MongoAuthenticationRepositoryTest {
         );
         query.fields().include("tokens");
         log.info("query: {}", query);
-        ProjectionToken result = authenticationRepository.findProjection(query,
-                ProjectionToken.class);
+        ProjectionToken result = authenticationRepository.findProjection(query, ProjectionToken.class);
         log.info("result: {}", result);
         if (result != null && result.getTokens() != null) {
             result.getTokens().stream().forEach((v) -> {
                 long expires = (Long) v.getExpires();
                 if (DateUtils.isExpired(expires)) {
-                    log.info("token '{}' is expired due-date. {}", v.getToken(),
-                            DateUtils.getFormattedString(expires));
+                    log.info("token '{}' is expired due-date. {}", v.getToken(), DateUtils.getFormattedString(expires));
                 }
                 else {
-                    log.info("token '{}' is alived {}", v.getToken(),
-                            DateUtils.getFormattedString(expires));
+                    log.info("token '{}' is alived {}", v.getToken(), DateUtils.getFormattedString(expires));
                 }
             });
         }
@@ -225,8 +217,7 @@ public class MongoAuthenticationRepositoryTest {
          * </pre>
          */
         Query sql = new Query(Criteria.where("_id").is(id).and("authorities").is(permCd)
-                .andOperator(Criteria.where("tokens.token").is(token)
-                        .and("tokens.expires").gte(expires)));
+                .andOperator(Criteria.where("tokens.token").is(token).and("tokens.expires").gte(expires)));
         boolean perm = authenticationRepository.exists(sql);
         log.info(sql.toString());
         log.info("permission1: {}", perm);
@@ -250,8 +241,7 @@ public class MongoAuthenticationRepositoryTest {
                 /* case 1 */
                 // .and("tokens")
                 /* case 2 */
-                .and("tokens").andOperator(
-                        Criteria.where("token").is(token).and("expires").gte(expires))
+                .and("tokens").andOperator(Criteria.where("token").is(token).and("expires").gte(expires))
 
         );
         boolean perm2 = authenticationRepository.exists(sql2);
@@ -287,9 +277,8 @@ public class MongoAuthenticationRepositoryTest {
          * </code>
          * </pre>
          */
-        Query query = new Query(Criteria.where("_id").is(id).and("authorities").is(permCd)
-                .and("tokens").elemMatch(
-                        Criteria.where("token").is(token).and("expires").gte(expires)));
+        Query query = new Query(Criteria.where("_id").is(id).and("authorities").is(permCd).and("tokens")
+                .elemMatch(Criteria.where("token").is(token).and("expires").gte(expires)));
         boolean hasPermission = authenticationRepository.exists(query);
         log.info(query.toString());
         log.info("hasPermission: {}", hasPermission);

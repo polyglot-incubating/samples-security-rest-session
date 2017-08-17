@@ -1,17 +1,19 @@
 package org.chiwooplatform.security.support;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import java.io.Serializable;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
 
 import org.chiwooplatform.context.Constants;
 import org.chiwooplatform.security.authentication.RestAuthenticationToken;
 import org.chiwooplatform.security.core.PermissionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
 
 /**
  * 
@@ -45,8 +47,7 @@ import org.springframework.security.core.Authentication;
  */
 public class TokenPermissionEvaluator implements PermissionEvaluator {
 
-    private final transient Logger logger = LoggerFactory
-            .getLogger(TokenPermissionEvaluator.class);
+    private final transient Logger logger = LoggerFactory.getLogger(TokenPermissionEvaluator.class);
 
     private final PermissionResolver permissionResolver;
 
@@ -57,18 +58,15 @@ public class TokenPermissionEvaluator implements PermissionEvaluator {
     }
 
     @Override
-    public boolean hasPermission(Authentication authentication, Object requestArgs,
-            Object permCode) {
+    public boolean hasPermission(Authentication authentication, Object requestArgs, Object permCode) {
         if (!(authentication instanceof RestAuthenticationToken)) {
             return false;
         }
         RestAuthenticationToken auth = (RestAuthenticationToken) authentication;
         final String principal = auth.getName();
-        final String token = (requestArgs != null ? (String) requestArgs
-                : auth.getToken());
+        final String token = (requestArgs != null ? (String) requestArgs : auth.getToken());
         final String permCd = (String) permCode;
-        logger.debug("principal: {}, requestToken: {}, permissionId: {}", principal,
-                token, permCd);
+        logger.debug("principal: {}, requestToken: {}, permissionId: {}", principal, token, permCd);
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.PRINCIPAL, principal);
         param.put(Constants.TOKEN, token);
@@ -79,11 +77,9 @@ public class TokenPermissionEvaluator implements PermissionEvaluator {
     }
 
     @Override
-    public boolean hasPermission(Authentication authentication, Serializable targetId,
-            String targetType, Object permission) {
-        logger.warn("principal: {}, method: {}, permissionId", authentication, targetId,
-                targetType);
-        throw new UnsupportedOperationException(
-                "ID based permission evaluation currently not supported.");
+    public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType,
+            Object permission) {
+        logger.warn("principal: {}, method: {}, permissionId", authentication, targetId, targetType);
+        throw new UnsupportedOperationException("ID based permission evaluation currently not supported.");
     }
 }

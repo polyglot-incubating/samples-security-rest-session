@@ -38,8 +38,8 @@ public class AuthenticationUser {
 
     @Override
     public String toString() {
-        return "AuthenticationUser [id=" + id + ", userId=" + userId + ", tokens="
-                + tokens + ", authorities=" + authorities + "]";
+        return "AuthenticationUser [id=" + id + ", userId=" + userId + ", tokens=" + tokens + ", authorities="
+                + authorities + "]";
     }
 
     public String getId() {
@@ -71,8 +71,7 @@ public class AuthenticationUser {
             return new ArrayList<>();
         }
         final long currentTimestamp = System.currentTimeMillis();
-        final List<SimpleToken> activeTokens = getTokens().stream()
-                .filter((t) -> t.getExpires() > currentTimestamp)
+        final List<SimpleToken> activeTokens = getTokens().stream().filter((t) -> t.getExpires() > currentTimestamp)
                 .collect(Collectors.toList());
         return activeTokens;
     }

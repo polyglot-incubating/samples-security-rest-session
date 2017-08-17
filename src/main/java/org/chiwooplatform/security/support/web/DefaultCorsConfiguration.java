@@ -1,4 +1,4 @@
-package org.chiwooplatform.samples.support;
+package org.chiwooplatform.security.support.web;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -7,8 +7,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 public class DefaultCorsConfiguration implements CorsConfigurationSource {
 
-    private final String[] EXPOSED_RESPONSE_HEADERS = new String[] { "Authorization",
-            "Location", "Proxy-Location", "x-requested-with" };
+    private final String[] EXPOSED_RESPONSE_HEADERS = new String[] { "Authorization", "Location", "Proxy-Location",
+            "x-requested-with" };
 
     @Override
     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {

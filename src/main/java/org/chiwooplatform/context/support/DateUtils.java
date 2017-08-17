@@ -3,8 +3,11 @@ package org.chiwooplatform.context.support;
 import java.util.Date;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -49,8 +52,16 @@ public class DateUtils {
         return DateTimeFormatter.ofPattern(format);
     }
 
+    public static Date now() {
+        return toDate(LocalDateTime.now());
+    }
+
     public static LocalDateTime nowTime() {
         return LocalDateTime.now();
+    }
+
+    public static Instant nowInstant() {
+        return ZonedDateTime.now().toInstant();
     }
 
     public static LocalDateTime toLocalTime(final long timestamp) {
@@ -101,28 +112,38 @@ public class DateUtils {
      * @return value of formatted
      */
     public static String getFormattedString() {
-        return DateUtils.nowTime()
-                .format(DateUtils.formatter(DateUtils.DEFAULT_TIMESTAMP_FORMAT));
+        return DateUtils.nowTime().format(DateUtils.formatter(DateUtils.DEFAULT_TIMESTAMP_FORMAT));
+    }
+
+    public static Date toDate(LocalDate localDate) {
+        return Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static Date toDate(LocalDateTime localDtm) {
         return Date.from(localDtm.atZone(ZoneId.systemDefault()).toInstant());
     }
 
+    public static LocalDate toLocalDate(String value, String pattern) {
+        final LocalDate date = LocalDate.parse(value, DateTimeFormatter.ofPattern(pattern));
+        return date;
+    }
+
     public static LocalDateTime toLocalDtm(String value, String pattern) {
-        final LocalDateTime date = LocalDateTime.parse(value,
-                DateTimeFormatter.ofPattern(pattern));
+        final LocalDateTime date = LocalDateTime.parse(value, DateTimeFormatter.ofPattern(pattern));
         return date;
     }
 
     public static Date toDate(final String value, String pattern) {
+        if (pattern.length() <= 8) {
+            final LocalDate localDate = DateUtils.toLocalDate(value, pattern);
+            return DateUtils.toDate(localDate);
+        }
         final LocalDateTime localDtm = DateUtils.toLocalDtm(value, pattern);
         return DateUtils.toDate(localDtm);
     }
 
     private static Duration duration(Date start, Date end) {
-        return DateUtils.duration(DateUtils.toLocalTime(start),
-                DateUtils.toLocalTime(end));
+        return DateUtils.duration(DateUtils.toLocalTime(start), DateUtils.toLocalTime(end));
     }
 
     private static Duration duration(LocalDateTime start, LocalDateTime end) {
@@ -184,8 +205,8 @@ public class DateUtils {
         return DateUtils.getFormattedString(toLocalTime(date), format);
     }
 
-    public static String getFormattedString(final LocalDateTime localDtm,
-            final String format) {
+    public static String getFormattedString(final LocalDateTime localDtm, final String format) {
         return localDtm.format(DateUtils.formatter(format));
     }
+
 }

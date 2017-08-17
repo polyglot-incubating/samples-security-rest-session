@@ -35,8 +35,7 @@ import org.slf4j.LoggerFactory;
 @Component
 public class RedisBackedSessionRegistry extends SpringSessionBackedSessionRegistry {
 
-    private final Logger logger = LoggerFactory
-            .getLogger(RedisBackedSessionRegistry.class);
+    private final Logger logger = LoggerFactory.getLogger(RedisBackedSessionRegistry.class);
 
     @Resource(name = "sessionRedisTemplate")
     private final RedisTemplate<Object, Object> redisTemplate;
@@ -65,9 +64,8 @@ public class RedisBackedSessionRegistry extends SpringSessionBackedSessionRegist
     private static final String SESSION_ATTR_CONTEXT = "sessionAttr:SPRING_SECURITY_CONTEXT";
 
     private final String principalKey(final String pattern) {
-        return RedisBackedSessionRegistry.PRINCIPAL_PREFIX
-                + FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME + ":"
-                + pattern;
+        return RedisBackedSessionRegistry.PRINCIPAL_PREFIX + FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME
+                + ":" + pattern;
     }
 
     private final String sessionKey(final String sessionId) {
@@ -84,7 +82,7 @@ public class RedisBackedSessionRegistry extends SpringSessionBackedSessionRegist
         return null;
     }
 
-    private Authentication getAuthentication(final String sessionId) {
+    public Authentication getAuthentication(final String sessionId) {
         Object value = opsHash.get(sessionKey(sessionId), SESSION_ATTR_CONTEXT);
         if (value != null && value instanceof SecurityContext) {
             Authentication authentication = ((SecurityContext) value).getAuthentication();
@@ -142,14 +140,12 @@ public class RedisBackedSessionRegistry extends SpringSessionBackedSessionRegist
         RedisCallback<Set<Object>> callback = new RedisCallback<Set<Object>>() {
 
             public Set<Object> doInRedis(final RedisConnection connection) {
-                final ScanOptions options = ScanOptions.scanOptions().match(pattern)
-                        .count(limit).build();
+                final ScanOptions options = ScanOptions.scanOptions().match(pattern).count(limit).build();
                 Cursor<byte[]> bytes = connection.scan(options);
                 Set<Object> keys = new LinkedHashSet<>();
                 while (bytes.hasNext()) {
                     try {
-                        String vv = redisTemplate.getStringSerializer()
-                                .deserialize(bytes.next());
+                        String vv = redisTemplate.getStringSerializer().deserialize(bytes.next());
                         logger.debug("vv: {}", vv);
                         keys.add(vv);
                     }

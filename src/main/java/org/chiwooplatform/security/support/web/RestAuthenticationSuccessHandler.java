@@ -19,8 +19,7 @@ import org.chiwooplatform.security.authentication.UserAuthentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class RestAuthenticationSuccessHandler
-        extends SimpleUrlAuthenticationSuccessHandler {
+public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private RequestCache requestCache = new HttpSessionRequestCache();
 
@@ -54,8 +53,8 @@ public class RestAuthenticationSuccessHandler
 
     }
 
-    protected void handle(HttpServletRequest request, HttpServletResponse response,
-            Authentication authentication) throws IOException, ServletException {
+    protected void handle(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            throws IOException, ServletException {
         // Authentication aa = SecurityContextHolder.getContext().getAuthentication();
         // logger.info("xxxxxxxxxxxxxxxxx isAuthenticated(): " + aa.isAuthenticated());
         // logger.info("xxxxxxxxxxxxxxxxx getAuthorities(): " + aa.getAuthorities());
@@ -69,8 +68,8 @@ public class RestAuthenticationSuccessHandler
             return;
         }
         String targetUrlParam = getTargetUrlParameter();
-        if (isAlwaysUseDefaultTargetUrl() || (targetUrlParam != null
-                && StringUtils.hasText(request.getParameter(targetUrlParam)))) {
+        if (isAlwaysUseDefaultTargetUrl()
+                || (targetUrlParam != null && StringUtils.hasText(request.getParameter(targetUrlParam)))) {
             requestCache.removeRequest(request, response);
             clearAuthenticationAttributes(request);
             if (!StringUtils.isEmpty(json)) {

@@ -160,8 +160,7 @@ public final class ConverterUtils {
      * @param params map parameter
      * @param properties Boolean attribute name
      */
-    public static void rebindBooleanProperties(Map<String, Object> params,
-            String... properties) {
+    public static void rebindBooleanProperties(Map<String, Object> params, String... properties) {
         for (String prop : properties) {
             String value = (String) params.get(prop);
             if ("true".equals(value) || "false".equals(value)) {
@@ -223,8 +222,7 @@ public final class ConverterUtils {
      * @return 컬렉션 맵 java.util.Map
      * @throws Exception error occurred while converting to a map object.
      */
-    static public Map<String, Object> toMap(Object bean, String... ignoreProperties)
-            throws Exception {
+    static public Map<String, Object> toMap(Object bean, String... ignoreProperties) throws Exception {
         if (bean == null) {
             return null;
         }
@@ -233,8 +231,7 @@ public final class ConverterUtils {
         }
         Map<String, Object> row = new HashMap<>();
         try {
-            PropertyDescriptor[] descriptors = BeanUtils
-                    .getPropertyDescriptors(bean.getClass());
+            PropertyDescriptor[] descriptors = BeanUtils.getPropertyDescriptors(bean.getClass());
             for (PropertyDescriptor descriptor : descriptors) {
                 String name = descriptor.getName();
                 if (ignoreProperty(name, ignoreProperties)) {
@@ -257,9 +254,8 @@ public final class ConverterUtils {
         }
     }
 
-    static private void setterDouble(Method setter, Object bean, Class<?> paramType,
-            Object value) throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+    static private void setterDouble(Method setter, Object bean, Class<?> paramType, Object value)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (paramType == Integer.class) {
             setter.invoke(bean, new Double((Integer) value));
         }
@@ -283,9 +279,8 @@ public final class ConverterUtils {
         }
     }
 
-    static private void setterInteger(Method setter, Object bean, Class<?> paramType,
-            Object value) throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+    static private void setterInteger(Method setter, Object bean, Class<?> paramType, Object value)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (paramType == Double.class) {
             setter.invoke(bean, ((Double) value).intValue());
         }
@@ -317,9 +312,8 @@ public final class ConverterUtils {
         }
     }
 
-    static private void setterFloat(Method setter, Object bean, Class<?> paramType,
-            Object value) throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+    static private void setterFloat(Method setter, Object bean, Class<?> paramType, Object value)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (paramType == Double.class) {
             setter.invoke(bean, ((Double) value).floatValue());
         }
@@ -343,9 +337,8 @@ public final class ConverterUtils {
         }
     }
 
-    static private void setterLong(Method setter, Object bean, Class<?> paramType,
-            Object value) throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+    static private void setterLong(Method setter, Object bean, Class<?> paramType, Object value)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (paramType == Integer.class) {
             setter.invoke(bean, ((Integer) value).longValue());
         }
@@ -369,9 +362,8 @@ public final class ConverterUtils {
         }
     }
 
-    static private void setterBoolean(Method setter, Object bean, Class<?> paramType,
-            Object value) throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+    static private void setterBoolean(Method setter, Object bean, Class<?> paramType, Object value)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         int v = 0;
         if (paramType == Integer.class) {
             v = ((Integer) value).intValue();
@@ -402,9 +394,8 @@ public final class ConverterUtils {
         }
     }
 
-    static private void setterDate(Method setter, Object bean, Class<?> paramType,
-            Object value) throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+    static private void setterDate(Method setter, Object bean, Class<?> paramType, Object value)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (paramType == Timestamp.class) {
             setter.invoke(bean, new Date(((Timestamp) value).getTime()));
         }
@@ -437,17 +428,14 @@ public final class ConverterUtils {
     }
 
     static public void setProperty(Object source, Object target)
-            throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         setProperty(target.getClass().getSimpleName(), source, target);
     }
 
     static public void setProperty(final String propertyName, Object source, Object value)
-            throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException {
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         // ReflectionTestUtils
-        PropertyDescriptor desc = BeanUtils.getPropertyDescriptor(source.getClass(),
-                propertyName);
+        PropertyDescriptor desc = BeanUtils.getPropertyDescriptor(source.getClass(), propertyName);
         Method setter = desc.getWriteMethod();
         setter.invoke(source, value);
     }
@@ -473,6 +461,15 @@ public final class ConverterUtils {
         return builder.toString().toLowerCase();
     }
 
+    static public <T> T toBeanInstance(Map<String, Object> row, Class<T> clazz) throws Exception {
+        try {
+            return toBean(row, clazz);
+        }
+        catch (Exception e) {
+            return clazz.newInstance();
+        }
+    }
+
     /**
      * Map&#60;K, V&#62; 맵 컬렉션 객체를 파라미터로 선언된 클래스 타입 &#62;T&#60; 로 변환 한다.
      *
@@ -484,8 +481,7 @@ public final class ConverterUtils {
      */
     static public <T> T toBean(Map<String, Object> row, Class<T> clazz) throws Exception {
         if (row == null) {
-            throw new RuntimeException(
-                    "Can not convert to target class. Source object is null");
+            throw new RuntimeException("Can not convert to target class. Source object is null");
         }
         try {
             T bean = clazz.newInstance();
@@ -559,8 +555,7 @@ public final class ConverterUtils {
      * @throws Exception error occurred while converting to a Collection object that
      * contains Map.
      */
-    static public <M extends Map<String, Object>, T> List<T> toBeans(List<M> rows,
-            Class<T> clazz) throws Exception {
+    static public <M extends Map<String, Object>, T> List<T> toBeans(List<M> rows, Class<T> clazz) throws Exception {
         if (rows == null) {
             return null;
         }
@@ -600,8 +595,7 @@ public final class ConverterUtils {
      * @return 리턴 오브젝트
      * @throws Exception an error occurred while binding attributes from a source object.
      */
-    static public <T> T copyProperties(Object source, Class<T> clazz,
-            String... ignoreProperties) throws Exception {
+    static public <T> T copyProperties(Object source, Class<T> clazz, String... ignoreProperties) throws Exception {
         if (source == null) {
             return null;
         }

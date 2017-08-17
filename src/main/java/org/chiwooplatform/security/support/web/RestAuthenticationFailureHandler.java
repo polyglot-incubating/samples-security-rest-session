@@ -13,9 +13,8 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 public class RestAuthenticationFailureHandler implements AuthenticationFailureHandler {
 
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request,
-            HttpServletResponse response, AuthenticationException exception)
-            throws IOException, ServletException {
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException exception) throws IOException, ServletException {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         request.getSession().invalidate();
         response.sendError(status.value(), status.getReasonPhrase());

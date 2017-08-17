@@ -58,12 +58,10 @@ public class SignupController {
      * @param user
      * @return
      */
-    @PostMapping(value = BASE_URI
-            + "/signup", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = BASE_URI + "/signup", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<User> signup(@RequestBody User user) throws Exception {
         log.debug("{}", user);
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Optional.ofNullable(authentication).ifPresent((v) -> {
             log.debug("authentication: {}, isAuthenticated: {}", v, v.isAuthenticated());
         });
@@ -75,8 +73,7 @@ public class SignupController {
             log.debug("keys: {}", keyHolder.getKeys());
             log.debug("KeyList: {}", keyHolder.getKeyList());
             log.debug("keyHolder.getKey(): {}", keyHolder.getKey());
-            Integer id = Optional.ofNullable(keyHolder.getKey()).map((v) -> v.intValue())
-                    .orElse(null);
+            Integer id = Optional.ofNullable(keyHolder.getKey()).map((v) -> v.intValue()).orElse(null);
             user.setId(id);
             final URI location = WebUtils.uriLocation("/{id}", user.getId());
             return ResponseEntity.created(location).body(user);

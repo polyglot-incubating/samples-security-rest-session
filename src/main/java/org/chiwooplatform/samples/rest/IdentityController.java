@@ -1,21 +1,14 @@
 package org.chiwooplatform.samples.rest;
 
-import java.net.URI;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import java.net.URI;
+
 import javax.servlet.http.HttpSession;
 
-import org.chiwooplatform.samples.dao.mongo.AuthenticationRepository;
-import org.chiwooplatform.samples.support.ConverterUtils;
-import org.chiwooplatform.security.authentication.AuthenticationUser;
-import org.chiwooplatform.security.authentication.RestAuthenticationToken;
-import org.chiwooplatform.security.authentication.SimpleCredentials;
-import org.chiwooplatform.security.authentication.SimpleToken;
-import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
-import org.chiwooplatform.web.support.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -39,6 +32,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.chiwooplatform.context.support.ConverterUtils;
+import org.chiwooplatform.samples.dao.mongo.AuthenticationRepository;
+import org.chiwooplatform.security.authentication.AuthenticationUser;
+import org.chiwooplatform.security.authentication.RestAuthenticationToken;
+import org.chiwooplatform.security.authentication.SimpleCredentials;
+import org.chiwooplatform.security.authentication.SimpleToken;
+import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
+import org.chiwooplatform.web.support.WebUtils;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -85,30 +87,26 @@ public class IdentityController {
      */
     // @PostMapping(value = BASE_URI + "/auth/tokens", consumes =
     // MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AuthenticationUser> authenticate(
-            @RequestBody SimpleCredentials creds) {
+    public ResponseEntity<AuthenticationUser> authenticate(@RequestBody SimpleCredentials creds) {
         log.debug("{}", creds);
         AuthenticationUser authToken = new AuthenticationUser();
-        Authentication oldAuthentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+        Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
         log.debug("oldAuthentication: {}", oldAuthentication);
         if (oldAuthentication != null && oldAuthentication.isAuthenticated()) {
             log.debug("Found oldAuthentication: {}", oldAuthentication);
         }
-        Authentication authentication = new RestAuthenticationToken(creds.getUsername(),
-                creds.getPassword(), "sessionId");
+        Authentication authentication = new RestAuthenticationToken(creds.getUsername(), creds.getPassword(),
+                "sessionId");
         try {
             final RestAuthenticationToken newAuthentication = (RestAuthenticationToken) authenticationManager
                     .authenticate(authentication);
             log.debug("newAuthentication: {}", newAuthentication);
             log.debug("principal: {}", newAuthentication.getPrincipal());
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-            SimpleToken simpleToken = new SimpleToken(newAuthentication.getToken(),
-                    newAuthentication.getExpires());
+            SimpleToken simpleToken = new SimpleToken(newAuthentication.getToken(), newAuthentication.getExpires());
             authToken.addToken(simpleToken);
             // repository.save(arg0)
-            final URI location = WebUtils.uriLocation("/{id}",
-                    newAuthentication.getName());
+            final URI location = WebUtils.uriLocation("/{id}", newAuthentication.getName());
             return ResponseEntity.created(location).body(authToken);
         }
         catch (Exception e) {
@@ -121,8 +119,7 @@ public class IdentityController {
     @Autowired
     private RedisBackedSessionRegistry sessionRegistry;
 
-    @GetMapping(value = BASE_URI
-            + "/active-users", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = BASE_URI + "/active-users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getActiveUsers() {
         log.info("sessionRepository: {}", sessionRegistry);
         List<Object> principals = sessionRegistry.getAllPrincipals();
@@ -140,30 +137,23 @@ public class IdentityController {
     // }
     //
 
-    @GetMapping(value = BASE_URI
-            + "/active-sessions", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = BASE_URI + "/active-sessions", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getActiveSessions() {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("authentication: {}", authentication);
-        List<SessionInformation> sessions = sessionRegistry
-                .getAllSessions(authentication.getPrincipal(), false);
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions(authentication.getPrincipal(), false);
         return ResponseEntity.ok(sessions);
     }
 
     @RequestMapping(value = "/identity/auth/query", method = RequestMethod.GET, consumes = {
             MediaType.APPLICATION_JSON_VALUE })
     @ResponseStatus(HttpStatus.OK)
-    public @JsonSerialize List<AuthenticationUser> query(
-            @RequestParam Map<String, Object> params,
-            @PageableDefault(sort = { "expires" }) Pageable pageable, HttpSession session)
-            throws Exception {
+    public @JsonSerialize List<AuthenticationUser> query(@RequestParam Map<String, Object> params,
+            @PageableDefault(sort = { "expires" }) Pageable pageable, HttpSession session) throws Exception {
         final String sessionId = session.getId();
         log.debug("sessionId: {}", sessionId);
-        AuthenticationUser auth = ConverterUtils.toBeanInstance(params,
-                AuthenticationUser.class);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withMatcher("id", GenericPropertyMatchers.exact())
+        AuthenticationUser auth = ConverterUtils.toBeanInstance(params, AuthenticationUser.class);
+        ExampleMatcher matcher = ExampleMatcher.matching().withMatcher("id", GenericPropertyMatchers.exact())
                 .withMatcher("username", GenericPropertyMatchers.startsWith())
                 .withMatcher("token", GenericPropertyMatchers.contains());
         Example<AuthenticationUser> example = Example.of(auth, matcher);
@@ -174,20 +164,17 @@ public class IdentityController {
     @RequestMapping(value = "/identity/auth/details", method = RequestMethod.GET, consumes = {
             MediaType.APPLICATION_JSON_VALUE })
     @ResponseStatus(HttpStatus.OK)
-    public @JsonSerialize List<AuthenticationUser> users(
-            @RequestParam Map<String, Object> params, HttpSession session) {
+    public @JsonSerialize List<AuthenticationUser> users(@RequestParam Map<String, Object> params,
+            HttpSession session) {
         final String sessionId = session.getId();
         log.debug("sessionId: {}", sessionId);
         try {
-            AuthenticationUser auth = ConverterUtils.toBeanInstance(params,
-                    AuthenticationUser.class);
-            ExampleMatcher matcher = ExampleMatcher.matching()
-                    .withMatcher("id", GenericPropertyMatchers.exact())
+            AuthenticationUser auth = ConverterUtils.toBeanInstance(params, AuthenticationUser.class);
+            ExampleMatcher matcher = ExampleMatcher.matching().withMatcher("id", GenericPropertyMatchers.exact())
                     .withMatcher("username", GenericPropertyMatchers.startsWith())
                     .withMatcher("token", GenericPropertyMatchers.contains());
             Example<AuthenticationUser> example = Example.of(auth, matcher);
-            return repository.findAll(example).stream().limit(5)
-                    .sorted(Comparator.comparing(AuthenticationUser::getId))
+            return repository.findAll(example).stream().limit(5).sorted(Comparator.comparing(AuthenticationUser::getId))
                     .collect(Collectors.toList());
         }
         catch (Exception e) {

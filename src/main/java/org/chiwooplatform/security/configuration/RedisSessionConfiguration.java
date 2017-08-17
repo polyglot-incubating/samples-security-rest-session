@@ -28,8 +28,8 @@ public class RedisSessionConfiguration {
 
     @Bean(name = RedisSessionConfiguration.SESSION_REGISTRY_NAME)
     public RedisBackedSessionRegistry redisBackedSessionRegistry() {
-        final RedisBackedSessionRegistry redisBackedSessionRegistry = new RedisBackedSessionRegistry(
-                sessionRepository, redisTemplate);
+        final RedisBackedSessionRegistry redisBackedSessionRegistry = new RedisBackedSessionRegistry(sessionRepository,
+                redisTemplate);
         return redisBackedSessionRegistry;
     }
 

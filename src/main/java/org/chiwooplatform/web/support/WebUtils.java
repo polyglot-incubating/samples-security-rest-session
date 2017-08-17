@@ -28,8 +28,7 @@ public final class WebUtils {
      * @param pathVariables pathVariables 마크업 변수를 치환할 변수 배열
      * @return 리소스 uri 의 pathVariables 마크업이 실제 변수로 치환된 url
      */
-    public static String genUriWithPathVariables(String sourceUri,
-            String... pathVariables) {
+    public static String genUriWithPathVariables(String sourceUri, String... pathVariables) {
         String resultUri = null;
         if (pathVariables != null) {
             Matcher matcher = Pattern.compile(URI_REGEX).matcher(sourceUri);
@@ -44,14 +43,12 @@ public final class WebUtils {
                 }
             }
             else {
-                throw new RuntimeException(
-                        "path valiables count mismatched.\nsourceUri is " + sourceUri
-                                + "\npathVariables is " + Arrays.toString(pathVariables));
+                throw new RuntimeException("path valiables count mismatched.\nsourceUri is " + sourceUri
+                        + "\npathVariables is " + Arrays.toString(pathVariables));
             }
         }
         else {
-            throw new RuntimeException(
-                    "path valiable is null, and sourceUri is " + sourceUri);
+            throw new RuntimeException("path valiable is null, and sourceUri is " + sourceUri);
         }
         return resultUri;
     }
@@ -63,8 +60,7 @@ public final class WebUtils {
      * @param pathVariables pathVariables 마크업 변수를 치환할 변수 배열
      * @return 리소스 uri 의 pathVariables 마크업이 실제 변수로 치환된 url
      */
-    public static String genAwareUriWithPathVariables(String uri,
-            String... pathVariables) {
+    public static String genAwareUriWithPathVariables(String uri, String... pathVariables) {
         String resultUri = uri;
         if (pathVariables != null) {
             Matcher matcher = Pattern.compile(URI_REGEX).matcher(uri);
@@ -73,9 +69,9 @@ public final class WebUtils {
                 matchedCount++;
             }
             if (matchedCount > pathVariables.length) {
-                throw new RuntimeException(String.format(
-                        "path valiables count mismatched. uri is '%s' pathVariables is '%s'",
-                        uri, Arrays.toString(pathVariables)));
+                throw new RuntimeException(
+                        String.format("path valiables count mismatched. uri is '%s' pathVariables is '%s'", uri,
+                                Arrays.toString(pathVariables)));
             }
             else {
                 for (int i = 0; i < matchedCount; i++) {
@@ -84,16 +80,18 @@ public final class WebUtils {
             }
         }
         else {
-            throw new RuntimeException(
-                    String.format("path valiable is null, abd uri is '%s'", uri));
+            throw new RuntimeException(String.format("path valiable is null, abd uri is '%s'", uri));
         }
         return resultUri;
     }
 
-    public static URI uriLocation(final String pathVariable,
-            final Object... resourceIds) {
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path(pathVariable)
-                .buildAndExpand(resourceIds).toUri();
+    public static URI uriLocation(final Object... resourceId) {
+        return uriLocation("/{id}", resourceId);
+    }
+
+    public static URI uriLocation(final String pathVariable, final Object... resourceIds) {
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path(pathVariable).buildAndExpand(resourceIds)
+                .toUri();
         return uri;
     }
 
@@ -104,8 +102,7 @@ public final class WebUtils {
     public static boolean isAjaxRequest(HttpServletRequest request) {
         final String requestWith = request.getHeader(REQUEST_WITH_HEADER_NAME);
         final String contentType = request.getHeader(CONTENT_TYPE_HEADER_NAME);
-        if ("XMLHttpRequest".equals(requestWith)
-                || contentType.startsWith("application/json")
+        if ("XMLHttpRequest".equals(requestWith) || contentType.startsWith("application/json")
                 || contentType.startsWith("application/xml")) {
             return true;
         }

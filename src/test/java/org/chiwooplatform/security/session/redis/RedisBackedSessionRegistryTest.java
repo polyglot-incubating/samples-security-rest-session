@@ -19,29 +19,29 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest(classes = AbstractRedisTests.class)
 public class RedisBackedSessionRegistryTest {
 
-  @Autowired
-  private RedisBackedSessionRegistry registry;
+    @Autowired
+    private RedisBackedSessionRegistry registry;
 
-  @Test
-  public void testInstances() throws Exception {
-    log.info("registry: {}", registry);
-  }
+    @Test
+    public void testInstances() throws Exception {
+        log.info("registry: {}", registry);
+    }
 
-  @Test
-  public void testToken() throws Exception {
-    String token = "1f7e5964-49b9-4847-aae2-13fbd9b6c0aa";
-    String principal = "lamp.java@gmail.com";
+    @Test
+    public void testToken() throws Exception {
+        String token = "1f7e5964-49b9-4847-aae2-13fbd9b6c0aa";
+        String principal = "lamp.java@gmail.com";
 
-    SessionInformation session = registry.getSessionInformation(token);
-    log.info("session: {}", session);
-    log.info("session.getPrincipal(): {}", session.getPrincipal());
-    log.info("session.isExpired(): {}", session.isExpired());
-    log.info("session.getLastRequest(): {}",
-        DateUtils.getFormattedString(session.getLastRequest(), DateUtils.LIST_TIMESTAMP_FORMAT));
-    log.info("session.getLastRequest(): {}", session.getPrincipal().getClass().getName());
+        SessionInformation session = registry.getSessionInformation(token);
+        log.info("session: {}", session);
+        log.info("session.getPrincipal(): {}", session.getPrincipal());
+        log.info("session.isExpired(): {}", session.isExpired());
+        log.info("session.getLastRequest(): {}",
+                DateUtils.getFormattedString(session.getLastRequest(), DateUtils.LIST_TIMESTAMP_FORMAT));
+        log.info("session.getLastRequest(): {}", session.getPrincipal().getClass().getName());
 
-    List<SessionInformation> sessions = registry.getAllSessions(principal, false);
-    log.info("withPrincipal: {}", sessions);
-  }
+        List<SessionInformation> sessions = registry.getAllSessions(principal, false);
+        log.info("withPrincipal: {}", sessions);
+    }
 
 }

@@ -2,15 +2,16 @@ package org.chiwooplatform.security.session.mongo;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+
 import org.chiwooplatform.context.Constants;
 import org.chiwooplatform.security.core.AuthenticationRepository;
 import org.chiwooplatform.security.core.PermissionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 /**
  * <pre>
@@ -44,8 +45,7 @@ import org.springframework.data.mongodb.core.query.Query;
  */
 public class MongoPermissionResolver implements PermissionResolver {
 
-    private final transient Logger logger = LoggerFactory
-            .getLogger(MongoPermissionResolver.class);
+    private final transient Logger logger = LoggerFactory.getLogger(MongoPermissionResolver.class);
 
     private final MongoTemplate mongoTemplate;
 
@@ -67,9 +67,8 @@ public class MongoPermissionResolver implements PermissionResolver {
         if (token == null || principal == null || permCd == null) {
             return false;
         }
-        Query query = new Query(Criteria.where("_id").is(principal).and("authorities")
-                .is(permCd).and("tokens").elemMatch(Criteria.where("token").is(token)
-                        .and("expires").gte(currentDtm)));
+        Query query = new Query(Criteria.where("_id").is(principal).and("authorities").is(permCd).and("tokens")
+                .elemMatch(Criteria.where("token").is(token).and("expires").gte(currentDtm)));
         boolean hasPermission = mongoTemplate.exists(query, collectionName);
         return hasPermission;
     }

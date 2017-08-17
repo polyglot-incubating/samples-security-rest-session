@@ -3,15 +3,6 @@ package org.chiwooplatform.security.support;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.chiwooplatform.context.support.DateUtils;
-import org.chiwooplatform.security.authentication.AuthenticationUser;
-import org.chiwooplatform.security.authentication.RestAuthenticationToken;
-import org.chiwooplatform.security.authentication.SimpleToken;
-import org.chiwooplatform.security.core.AuthenticationRepository;
-import org.chiwooplatform.security.core.UserProfile;
-import org.chiwooplatform.security.core.UserProfileResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
@@ -23,6 +14,16 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import org.chiwooplatform.context.support.DateUtils;
+import org.chiwooplatform.security.authentication.AuthenticationUser;
+import org.chiwooplatform.security.authentication.RestAuthenticationToken;
+import org.chiwooplatform.security.authentication.SimpleToken;
+import org.chiwooplatform.security.core.AuthenticationRepository;
+import org.chiwooplatform.security.core.UserProfile;
+import org.chiwooplatform.security.core.UserProfileResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Please use this filter for testing purposes only.
@@ -38,22 +39,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  */
 public class RestAuthenticationProvider implements AuthenticationProvider {
 
-    private final transient Logger logger = LoggerFactory
-            .getLogger(RestAuthenticationProvider.class);
+    private final transient Logger logger = LoggerFactory.getLogger(RestAuthenticationProvider.class);
 
     private static final int EXPIRES_DAYS = 1;
 
     private final UserProfileResolver userProfileResolver;
 
-    protected final MessageSourceAccessor messages = SpringSecurityMessageSource
-            .getAccessor();
+    protected final MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
 
     private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
     private AuthenticationRepository<AuthenticationUser> authenticationRepository;
 
-    public void setAuthenticationRepository(
-            AuthenticationRepository<AuthenticationUser> authenticationRepository) {
+    public void setAuthenticationRepository(AuthenticationRepository<AuthenticationUser> authenticationRepository) {
         this.authenticationRepository = authenticationRepository;
     }
 
@@ -70,14 +68,12 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
     private Collection<String> authorities(UserProfile user) {
         Collection<String> authorities = null;
         if (user.getAuthorities() != null) {
-            authorities = user.getAuthorities().stream().map((v) -> v.getAuthority())
-                    .collect(Collectors.toList());
+            authorities = user.getAuthorities().stream().map((v) -> v.getAuthority()).collect(Collectors.toList());
         }
         return authorities;
     }
 
-    private AuthenticationUser authenticationUser(UserProfile user, final String token,
-            final Long expires) {
+    private AuthenticationUser authenticationUser(UserProfile user, final String token, final Long expires) {
         final SimpleToken simpleToken = new SimpleToken(token, expires);
         AuthenticationUser model = new AuthenticationUser();
         model.setId(user.getUsername());
@@ -91,8 +87,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
      * @see AuthenticationProvider#authenticate(Authentication)
      */
     @Override
-    public Authentication authenticate(Authentication authentication)
-            throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         final String username = authentication.getName();
         try {
             RestAuthenticationToken authenticationToken = (RestAuthenticationToken) authentication;
@@ -102,22 +97,19 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
             userDetailsChecker.check(user);
             String credentials = authentication.getCredentials().toString();
             if (!credentials.equals(user.getPassword())) {
-                throw new BadCredentialsException(messages.getMessage(
-                        "AbstractUserDetailsAuthenticationProvider.badCredentials",
-                        "Bad credentials"));
+                throw new BadCredentialsException(messages
+                        .getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
             }
             final String token = authenticationToken.getToken();
             user.setToken(token);
             if (user instanceof CredentialsContainer) {
                 ((CredentialsContainer) user).eraseCredentials();
             }
-            final RestAuthenticationToken newAuthentication = new RestAuthenticationToken(
-                    user);
+            final RestAuthenticationToken newAuthentication = new RestAuthenticationToken(user);
             final Long expires = DateUtils.timeMillis(DateUtils.plusDays(EXPIRES_DAYS));
             newAuthentication.setExpires(expires);
             if (authenticationRepository != null) {
-                AuthenticationUser authenticationUser = authenticationUser(user, token,
-                        expires);
+                AuthenticationUser authenticationUser = authenticationUser(user, token, expires);
                 authenticationRepository.saveOrUpdate(authenticationUser);
             }
             return newAuthentication;
@@ -128,9 +120,8 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         }
         catch (RuntimeException re) {
             logger.error("RE: {}", re.getMessage(), re);
-            throw new UsernameNotFoundException(
-                    this.messages.getMessage("JdbcDaoImpl.notFound",
-                            new Object[] { username }, "Username {0} not found"));
+            throw new UsernameNotFoundException(this.messages.getMessage("JdbcDaoImpl.notFound",
+                    new Object[] { username }, "Username {0} not found"));
         }
     }
 

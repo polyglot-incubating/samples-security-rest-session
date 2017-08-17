@@ -1,19 +1,5 @@
 package org.chiwooplatform.samples.core;
 
-import org.chiwooplatform.context.support.UUIDGenerator;
-import org.chiwooplatform.samples.support.DefaultCorsConfiguration;
-import org.chiwooplatform.security.configuration.EnableRedisSessionRegistry;
-import org.chiwooplatform.security.core.PermissionResolver;
-import org.chiwooplatform.security.core.UserProfileResolver;
-import org.chiwooplatform.security.session.mongo.MongoAuthenticationRepository;
-import org.chiwooplatform.security.session.mongo.MongoPermissionResolver;
-import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
-import org.chiwooplatform.security.support.AnonymousStatelessAuthenticationFilter;
-import org.chiwooplatform.security.support.JdbcUserAuthoritzLoader;
-import org.chiwooplatform.security.support.JdbcUserProfileResolver;
-import org.chiwooplatform.security.support.RestAuthenticationFilter;
-import org.chiwooplatform.security.support.RestAuthenticationProvider;
-import org.chiwooplatform.security.support.TokenPermissionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -33,6 +19,21 @@ import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.session.web.http.HeaderHttpSessionStrategy;
 
+import org.chiwooplatform.context.support.UUIDGenerator;
+import org.chiwooplatform.security.configuration.EnableRedisSessionRegistry;
+import org.chiwooplatform.security.core.PermissionResolver;
+import org.chiwooplatform.security.core.UserProfileResolver;
+import org.chiwooplatform.security.session.mongo.MongoAuthenticationRepository;
+import org.chiwooplatform.security.session.mongo.MongoPermissionResolver;
+import org.chiwooplatform.security.session.redis.RedisBackedSessionRegistry;
+import org.chiwooplatform.security.support.AnonymousStatelessAuthenticationFilter;
+import org.chiwooplatform.security.support.JdbcUserAuthoritzLoader;
+import org.chiwooplatform.security.support.JdbcUserProfileResolver;
+import org.chiwooplatform.security.support.RestAuthenticationFilter;
+import org.chiwooplatform.security.support.RestAuthenticationProvider;
+import org.chiwooplatform.security.support.TokenPermissionEvaluator;
+import org.chiwooplatform.security.support.web.DefaultCorsConfiguration;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -43,9 +44,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private static final String[] EXCLUDED_WEB_STATIC_RESOURCES = new String[] {
-            "/static/**", "/assets/**", "/resources/**", "/favicon.ico", "/css/**",
-            "/js/**" };
+    private static final String[] EXCLUDED_WEB_STATIC_RESOURCES = new String[] { "/static/**", "/assets/**",
+            "/resources/**", "/favicon.ico", "/css/**", "/js/**" };
 
     public SecurityConfiguration() {
         // super(true);
@@ -114,7 +114,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     // /**
-    // * URI 에 대한 ROLE Votor 를 커스터마이즈 하고 싶다면, AccessDecisionVoter 인터페이스를 구현 하여 AccessDecisionManager 에 추가 할 수 있다.
+    // * URI 에 대한 ROLE Votor 를 커스터마이즈 하고 싶다면, AccessDecisionVoter 인터페이스를 구현 하여
+    // AccessDecisionManager 에 추가 할 수 있다.
     // * @return
     // */
     // @Bean
@@ -128,10 +129,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     // }
 
     @Bean
-    public RestAuthenticationFilter restAuthenticationFilter(ObjectMapper objectMapper)
-            throws Exception {
-        final RestAuthenticationFilter filter = new RestAuthenticationFilter(
-                API_LOGIN_URI);
+    public RestAuthenticationFilter restAuthenticationFilter(ObjectMapper objectMapper) throws Exception {
+        final RestAuthenticationFilter filter = new RestAuthenticationFilter(API_LOGIN_URI);
         filter.setObjectMapper(objectMapper);
         filter.setAuthenticationManager(authenticationManager());
         return filter;
@@ -141,45 +140,36 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private RestAuthenticationFilter restAuthenticationFilter;
 
     @Bean
-    public MongoAuthenticationRepository mongoAuthenticationRepository(
-            MongoTemplate mongoTemplate) {
-        final MongoAuthenticationRepository repository = new MongoAuthenticationRepository(
-                mongoTemplate);
+    public MongoAuthenticationRepository mongoAuthenticationRepository(MongoTemplate mongoTemplate) {
+        final MongoAuthenticationRepository repository = new MongoAuthenticationRepository(mongoTemplate);
         return repository;
     }
 
     @Bean
     public UserProfileResolver userProfileResolver(JdbcTemplate jdbcTemplate) {
-        final JdbcUserProfileResolver principalResolver = new JdbcUserProfileResolver(
-                jdbcTemplate);
-        final JdbcUserAuthoritzLoader authoritzLoader = new JdbcUserAuthoritzLoader(
-                jdbcTemplate);
+        final JdbcUserProfileResolver principalResolver = new JdbcUserProfileResolver(jdbcTemplate);
+        final JdbcUserAuthoritzLoader authoritzLoader = new JdbcUserAuthoritzLoader(jdbcTemplate);
         principalResolver.setUserAuthoritzLoader(authoritzLoader);
         return principalResolver;
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(
-            UserProfileResolver userProfileResolver,
+    public AuthenticationProvider authenticationProvider(UserProfileResolver userProfileResolver,
             MongoAuthenticationRepository authenticationRepository) {
-        final RestAuthenticationProvider provider = new RestAuthenticationProvider(
-                userProfileResolver);
+        final RestAuthenticationProvider provider = new RestAuthenticationProvider(userProfileResolver);
         provider.setAuthenticationRepository(authenticationRepository);
         return provider;
     }
 
     @Bean
     public PermissionResolver permissionResolver(MongoTemplate mongoTemplate) {
-        final MongoPermissionResolver permissionResolver = new MongoPermissionResolver(
-                mongoTemplate);
+        final MongoPermissionResolver permissionResolver = new MongoPermissionResolver(mongoTemplate);
         return permissionResolver;
     }
 
     @Bean
-    public PermissionEvaluator permissionEvaluator(
-            PermissionResolver permissionResolver) {
-        final TokenPermissionEvaluator permissionEvaluator = new TokenPermissionEvaluator(
-                permissionResolver);
+    public PermissionEvaluator permissionEvaluator(PermissionResolver permissionResolver) {
+        final TokenPermissionEvaluator permissionEvaluator = new TokenPermissionEvaluator(permissionResolver);
         return permissionEvaluator;
     }
 

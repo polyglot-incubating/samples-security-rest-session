@@ -11,8 +11,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(SpringRunner.class)
 @SpringBootConfiguration
-@ImportAutoConfiguration(
-    classes = {RedisAutoConfiguration.class, RedisRepositoriesAutoConfiguration.class})
+@ImportAutoConfiguration(classes = { RedisAutoConfiguration.class, RedisRepositoriesAutoConfiguration.class })
 @EnableRedisSessionRegistry
 public class AbstractRedisTests {
 
